@@ -43,9 +43,9 @@
 	</developers>
 
 	<scm>
-		<connection>scm:git:git@github.com:hintzed/picky.git</connection>
-		<developerConnection>scm:git:git@github.com:hintzed/picky.git</developerConnection>
-		<url>git@github.com:hintzed/picky</url>
+		<connection>scm:git:git@github.com:ucam-cl-dtg/picky.git</connection>
+		<developerConnection>scm:git:git@github.com:ucam-cl-dtg/picky.git</developerConnection>
+		<url>git@github.com:ucam-cl-dtg/picky</url>
 	</scm>
 
 	<dependencies>
