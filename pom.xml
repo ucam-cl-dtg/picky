@@ -42,6 +42,12 @@
 		</developer>
 	</developers>
 
+  	<scm>
+		<url>https://github.com/hintzed/picky</url>
+		<connection>scm:git:git://github.com/hintzed/picky.git</connection>
+		<developerConnection>scm:git:git@github.com:hintzed/picky.git.git</developerConnection>
+	</scm>
+
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
