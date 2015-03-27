@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.scene.web.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.VBox?>
+
+
+<StackPane maxWidth="450.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="uk.ac.cam.cl.dtg.picky.client.ui.AboutDialogPresenter">
+   <children>
+      <VBox alignment="TOP_CENTER" maxWidth="450.0" spacing="10.0">
+      	<children>
+      		<ImageView fitHeight="129" fitWidth="128" pickOnBounds="true" preserveRatio="true">
+      			<image>
+      				<Image url="icon/icon128x128.png" />
+      			</image>
+      		</ImageView>
+      		<Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Picky Client" textAlignment="CENTER">
+      			<font>
+      				<Font name="System Bold" size="13.0" />
+      			</font>
+      		</Label>
+      		<Label fx:id="versionLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" text="Version" textAlignment="CENTER" VBox.vgrow="ALWAYS">
+      			<font>
+      				<Font name="System Bold" size="13.0" />
+      			</font>
+      		</Label>
+      		<Label alignment="CENTER" text="Application icon made by Freepik from www.flaticon.com, licensed under Creative Commons BY 3.0." textAlignment="CENTER" wrapText="true" />
+      		<Label alignment="CENTER" text="Some icons by Yusuke Kamiyamane. Licensed under a Creative Commons Attribution 3.0 License." textAlignment="CENTER" wrapText="true" />
+      		<Label alignment="CENTER" text="This program comes with ABSOLUTELY NO WARRANTY; for details, visit https://www.apache.org/licenses/LICENSE-2.0.html" textAlignment="CENTER" wrapText="true" />
+      	</children>
+      </VBox>
+   </children>
+</StackPane>

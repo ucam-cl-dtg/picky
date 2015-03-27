@@ -1,0 +1,446 @@
+package uk.ac.cam.cl.dtg.picky.client.ui;
+
+/*
+ * #%L
+ * Picky
+ * %%
+ * Copyright (C) 2015 Daniel Hintze <dh526@cl.cam.ac.uk>
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.text.DateFormat;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.ResourceBundle;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
+import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.chart.AreaChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
+import javafx.scene.chart.XYChart.Data;
+import javafx.scene.chart.XYChart.Series;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBoxTreeItem;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TitledPane;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.TilePane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+
+import org.controlsfx.control.CheckTreeView;
+import org.reactfx.EventStreams;
+
+import uk.ac.cam.cl.dtg.picky.client.ClientApp;
+import uk.ac.cam.cl.dtg.picky.client.binding.BusyGraphicsBinding;
+import uk.ac.cam.cl.dtg.picky.dataset.Dataset;
+import uk.ac.cam.cl.dtg.picky.engine.Engine;
+import uk.ac.cam.cl.dtg.picky.engine.ProgressEvent;
+import uk.ac.cam.cl.dtg.picky.engine.ProgressEvent.Action;
+import uk.ac.cam.cl.dtg.picky.engine.ProgressListener;
+import uk.ac.cam.cl.dtg.picky.planner.Plan;
+import de.ecclesia.kipeto.common.util.FileSizeFormatter;
+
+public class ClientPresenter implements Initializable {
+
+	private static final File SETTINGS = new File("settings.properties");
+
+	private static final String SETTINGS_SERVER = "server";
+	private static final String SETTINGS_DATASET = "dataset";
+	private static final String SETTINGS_TARGET = "targetDir";
+	private static final String SETTINGS_CACHE = "cacheDir";
+	private static final String SETTINGS_TEMP = "tempDir";
+	private static final String SETTINGS_FILE_FILTER = "fileFilter";
+	private static final String SETTINGS_ENTRY_SELECTION = "entrySelection";
+
+	private static final long DOWNLOAD_CHART_TICKS = TimeUnit.HOURS.toSeconds(1);
+
+	@FXML
+	private VBox fileSelectionVBox;
+	@FXML
+	private VBox entrySelectionVBox;
+	@FXML
+	private VBox tasksVBox;
+	@FXML
+	private TitledPane fileSelectionTitledPane;
+	@FXML
+	private TitledPane entrySelectionTitledPane;
+	@FXML
+	private VBox settings;
+	@FXML
+	private VBox areaChartBox;
+	@FXML
+	private Label datasetLabel;
+	@FXML
+	private Label hashLabel;
+	@FXML
+	private Label contentLabel;
+	@FXML
+	private Hyperlink urlLink;
+	@FXML
+	private ImageView logoImage;
+	@FXML
+	private TextField fileFilter;
+	@FXML
+	private Label fileFilterError;
+	@FXML
+	private TilePane fileFilterContext;
+	@FXML
+	private ImageView fileFilterTick;
+	@FXML
+	private TitledPane datasetTitledPane;
+	@FXML
+	private TitledPane changesTitledPane;
+
+	private DirView serverDir;
+	private DirView datasetDir;
+	private DirView targetDir;
+	private DirView cacheDir;
+	private DirView tempDir;
+
+	private CheckTreeView<String> entrySelectionTreeView;
+	private AreaChart<Number, Number> areaChart;
+
+	private Engine engine;
+	private Map<Action, TaskItemView> tasks = new HashMap<>();
+
+	private ClientModel model;
+
+	private XYChart.Series<Number, Number> byteDownloadSeries;
+	private XYChart.Series<Number, Number> byteReadSeries;
+	private XYChart.Series<Number, Number> byteWriteSeries;
+
+	private NumberAxis xAxis;
+	private NumberAxis yAxis;
+
+	private DateFormat timeFormat;
+
+	@Override
+	public void initialize(URL url, ResourceBundle rb) {
+		entrySelectionTreeView = new CheckTreeView<String>(new CheckBoxTreeItem<String>());
+		entrySelectionTreeView.showRootProperty().set(false);
+		entrySelectionVBox.getChildren().add(entrySelectionTreeView);
+
+		serverDir = new DirView("Server");
+		datasetDir = new DirView("Dataset");
+		targetDir = new DirView("Target");
+		cacheDir = new DirView("Cache");
+		tempDir = new DirView("Temp");
+
+		settings.getChildren().addAll(
+				serverDir.getView(),
+				datasetDir.getView(),
+				targetDir.getView(),
+				cacheDir.getView(),
+				tempDir.getView());
+
+		restoreSettings();
+
+		model = new ClientModel(
+				serverDir.getText().textProperty(),
+				datasetDir.getText().textProperty(),
+				targetDir.getText().textProperty(),
+				cacheDir.getText().textProperty(),
+				tempDir.getText().textProperty(),
+				fileFilter.textProperty(),
+				entrySelectionTreeView.getCheckModel().getCheckedItems());
+
+		fileFilterError.textProperty().bind(model.getFilterErrorBinding());
+		datasetLabel.textProperty().bind(Bindings.selectString(model.getDatasetBinding(), "description"));
+		hashLabel.textProperty().bind(Bindings.selectString(model.getDatasetBinding(), "id"));
+		contentLabel.textProperty().bind(Bindings.selectString(model.getDatasetBinding(), "contentDescription"));
+		fileFilterTick.visibleProperty().bind(Bindings.isNotNull(model.getFilterBinding()));
+		fileSelectionTitledPane.textProperty().bind(model.getFileSelectionLabel());
+		entrySelectionTitledPane.textProperty().bind(model.getEntrySelectionLabel());
+
+		BusyGraphicsBinding.install(fileSelectionTitledPane, model.getDatasetBinding());
+		BusyGraphicsBinding.install(datasetTitledPane, model.getDatasetBinding());
+		BusyGraphicsBinding.install(changesTitledPane, model.getPlanBinding());
+		BusyGraphicsBinding.install(entrySelectionTitledPane, model.getFileSelectionBinding());
+
+		urlLink.textProperty().bind(Bindings.selectString(model.getDatasetBinding(), "url"));
+		urlLink.setOnAction((e) -> {
+			ClientApp.getInstance().getHostServices().showDocument(urlLink.getText());
+		});
+
+		model.getDatasetBinding().addListener(new ChangeListener<Dataset>() {
+
+			@Override
+			public void changed(ObservableValue<? extends Dataset> observable, Dataset oldValue, Dataset newValue) {
+				if (newValue != null) {
+					Image image = new Image(new ByteArrayInputStream(newValue.getIcon()));
+					logoImage.setImage(image);
+				} else {
+					logoImage.setImage(null);
+				}
+			}
+		});
+
+		Bindings.bindContent(fileFilterContext.getChildren(), model.getFileContextLabels());
+
+		model.getEntryTreeBinding().addListener(new ChangeListener<CheckBoxTreeItem<String>>() {
+
+			private String entrySelection;
+
+			@Override
+			public void changed(ObservableValue<? extends CheckBoxTreeItem<String>> observable, CheckBoxTreeItem<String> oldValue,
+					CheckBoxTreeItem<String> newValue) {
+				if (newValue == null) {
+					System.out.println("oldValue" + oldValue);
+					entrySelection = CheckTreeViewPersistenceUtil.persist(entrySelectionTreeView);
+					entrySelectionTreeView.getRoot().getChildren().clear();
+					entrySelectionTreeView.getCheckModel().getCheckedItems().clear();
+					System.out.println("null: " + entrySelection);
+				} else {
+					entrySelectionTreeView.getRoot().getChildren().addAll(newValue.getChildren());
+					CheckTreeViewPersistenceUtil.restore(entrySelectionTreeView, entrySelection);
+					System.out.println("nonnull: " + entrySelection);
+				}
+			}
+		});
+
+		model.getPlanBinding().addListener(new UpdateTasksListener());
+
+		byteDownloadSeries = new AreaChart.Series<Number, Number>();
+		byteDownloadSeries.setName("Download");
+		byteDownloadSeries.getData().add(new Data<Number, Number>(getCurrentTS(), 0L));
+
+		byteReadSeries = new AreaChart.Series<Number, Number>();
+		byteReadSeries.setName("Read");
+		byteReadSeries.getData().add(new Data<Number, Number>(getCurrentTS(), 0L));
+
+		byteWriteSeries = new AreaChart.Series<Number, Number>();
+		byteWriteSeries.setName("Write");
+		byteWriteSeries.getData().add(new Data<Number, Number>(getCurrentTS(), 0L));
+
+		timeFormat = DateFormat.getTimeInstance(DateFormat.DEFAULT);
+
+		xAxis = new NumberAxis(0, DOWNLOAD_CHART_TICKS, DOWNLOAD_CHART_TICKS / 10);
+		xAxis.setForceZeroInRange(false);
+		xAxis.setAutoRanging(false);
+		xAxis.setTickLabelFormatter(new NumberAxis.DefaultFormatter(xAxis) {
+			@Override
+			public String toString(Number object) {
+				return timeFormat.format(new Date(object.longValue() * 1000));
+			}
+		});
+
+		yAxis = new NumberAxis();
+		yAxis.setAutoRanging(true);
+		yAxis.setTickLabelFormatter(new NumberAxis.DefaultFormatter(yAxis) {
+			@Override
+			public String toString(Number object) {
+				String label;
+				label = FileSizeFormatter.formateBytes(object.longValue(), 0);
+				return label;
+			}
+		});
+
+		areaChart = new AreaChart<Number, Number>(xAxis, yAxis) {
+			// Override to remove symbols on each data point
+			@Override
+			protected void dataItemAdded(Series<Number, Number> series, int itemIndex, Data<Number, Number> item) {
+			}
+		};
+		areaChart.setAnimated(false);
+		areaChart.getData().addAll(Arrays.asList(byteReadSeries, byteWriteSeries, byteDownloadSeries));
+
+		areaChartBox.getChildren().add(areaChart);
+
+		EventStreams.ticks(Duration.ofSeconds(1)).subscribe(new AreaChartUpdater());
+	}
+
+	private void toggleDownload(ActionEvent event) {
+		Plan plan = model.getPlanBinding().get();
+
+		engine = new Engine(model.getRepositoryBinding().get(), plan);
+		engine.addListener(new EngineProgressListener());
+		engine.execute();
+	}
+
+	private long getCurrentTS() {
+		return System.currentTimeMillis() / 1000;
+	}
+
+	private final class UpdateTasksListener implements ChangeListener<Plan> {
+		@Override
+		public void changed(ObservableValue<? extends Plan> observable, Plan oldPlan, Plan newPlan) {
+			tasks.clear();
+
+			if (newPlan != null) {
+				if (!newPlan.getDeleteDirActions().isEmpty()) {
+					tasks.put(Action.DELETE_DIR, new TaskItemView("Delete Directories", newPlan.getDeleteDirActions().size()));
+				}
+
+				if (!newPlan.getDeleteFileActions().isEmpty()) {
+					tasks.put(Action.DELETE_FILE, new TaskItemView("Delete Files", newPlan.getDeleteFileActions().size()));
+				}
+
+				if (!newPlan.getMakeDirActions().isEmpty()) {
+					tasks.put(Action.MAKE_DIR, new TaskItemView("Make Directories", newPlan.getMakeDirActions().size()));
+				}
+
+				if (!newPlan.getChunksToDownload().isEmpty()) {
+					tasks.put(Action.DOWNLOAD_CHUNK, new TaskItemView("Download Chunks", newPlan.getChunksToDownload().size()));
+				}
+
+				if (!newPlan.getInstallFileActions().isEmpty()) {
+					tasks.put(Action.INSTALL_FILE, new TaskItemView("Install Files", newPlan.getInstallFileActions().size()));
+				}
+
+				if (!newPlan.getUpdateFileActions().isEmpty()) {
+					tasks.put(Action.UPDATE_FILE, new TaskItemView("Update Files", newPlan.getUpdateFileActions().size()));
+				}
+			}
+
+			tasksVBox.getChildren().setAll(
+					tasks.keySet().stream().sorted().map(tasks::get).map(t -> t.getView()).collect(Collectors.toList()));
+
+			if (!tasks.isEmpty()) {
+				Button applyButton = new Button("Apply Changes");
+				applyButton.setOnAction(ClientPresenter.this::toggleDownload);
+				tasksVBox.getChildren().add(applyButton);
+			}
+
+		}
+	}
+
+	private class AreaChartUpdater implements Consumer<Object> {
+		long downloaded;
+		long read;
+		long written;
+
+		@Override
+		public void accept(Object t) {
+			downloaded = updateDiff("Download", byteDownloadSeries, downloaded, engine != null ? engine.getBytesDownloaded() : 0);
+			read = updateDiff("Read", byteReadSeries, read, engine != null ? engine.getBytesReadFromCache() : 0);
+			written = updateDiff("Write", byteWriteSeries, written, engine != null ? engine.getBytesWrittenToTarget() : 0);
+
+			xAxis.setLowerBound(getCurrentTS() - DOWNLOAD_CHART_TICKS);
+			xAxis.setUpperBound(getCurrentTS() - 1);
+		}
+
+		private long updateDiff(String label, Series<Number, Number> series, long lastRead, long currentRead) {
+			long diff = lastRead <= currentRead ? currentRead - lastRead : currentRead;
+
+			series.setName(label + (diff > 0 ? " (" + FileSizeFormatter.formateBytes(diff, 1) + "/s)" : ""));
+			series.getData().add(new Data<>(getCurrentTS(), diff));
+			if (series.getData().size() > DOWNLOAD_CHART_TICKS) {
+				series.getData().remove(0);
+			}
+
+			return currentRead;
+		}
+
+	}
+
+	private class EngineProgressListener implements ProgressListener {
+
+		@Override
+		public void onActionStart(ProgressEvent event) {
+			setProgress(event.getAction(), event.getMsg(), event.getCurrent(), event.getTotal());
+		}
+
+		@Override
+		public void onActionFinished(ProgressEvent event) {
+			setProgress(event.getAction(), event.getMsg(), event.getCurrent(), event.getTotal());
+		}
+
+	}
+
+	private void setProgress(Action action, String msg, int current, int total) {
+		((TaskItemPresenter) tasks.get(action).getPresenter()).update(msg, current);
+	}
+
+	public void restoreSettings() {
+		Properties properties = new Properties();
+
+		if (SETTINGS.exists()) try {
+			properties.load(new BufferedInputStream(new FileInputStream(SETTINGS)));
+			System.out.println(properties);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		cacheDir.getText().setText(properties.getProperty(SETTINGS_CACHE, ""));
+		datasetDir.getText().setText(properties.getProperty(SETTINGS_DATASET, ""));
+		serverDir.getText().setText(properties.getProperty(SETTINGS_SERVER, ""));
+		targetDir.getText().setText(properties.getProperty(SETTINGS_TARGET, ""));
+		tempDir.getText().setText(properties.getProperty(SETTINGS_TEMP, ""));
+		fileFilter.setText(properties.getProperty(SETTINGS_FILE_FILTER, ""));
+
+		CheckTreeViewPersistenceUtil.restore(entrySelectionTreeView, properties.getProperty(SETTINGS_ENTRY_SELECTION, ""));
+	}
+
+	public void persistSettings() {
+		Properties settings = new Properties();
+
+		settings.put(SETTINGS_CACHE, cacheDir.getText().getText());
+		settings.put(SETTINGS_DATASET, datasetDir.getText().getText());
+		settings.put(SETTINGS_SERVER, serverDir.getText().getText());
+		settings.put(SETTINGS_TARGET, targetDir.getText().getText());
+		settings.put(SETTINGS_TEMP, tempDir.getText().getText());
+		settings.put(SETTINGS_FILE_FILTER, fileFilter.getText());
+		settings.put(SETTINGS_ENTRY_SELECTION, CheckTreeViewPersistenceUtil.persist(entrySelectionTreeView));
+
+		try {
+			settings.store(new BufferedOutputStream(new FileOutputStream(SETTINGS)), null);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@FXML
+	public void close() {
+		persistSettings();
+
+		Stage stage = (Stage) contentLabel.getScene().getWindow();
+		stage.close();
+	}
+
+	@FXML
+	public void about() {
+		Dialog<Void> dialog = new Dialog<>();
+		dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+		dialog.getDialogPane().setContent(new AboutDialogView().getView());
+		dialog.showAndWait();
+	}
+
+}

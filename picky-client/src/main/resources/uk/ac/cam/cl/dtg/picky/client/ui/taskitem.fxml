@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<VBox maxHeight="-Infinity" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" spacing="3.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="uk.ac.cam.cl.dtg.picky.client.ui.TaskItemPresenter">
+   <children>
+      <Label fx:id="task" text="Task">
+         <font>
+            <Font name="System Bold" size="13.0" />
+         </font>
+      </Label>
+      <HBox alignment="CENTER" maxWidth="1.7976931348623157E308">
+         <children>
+            <VBox HBox.hgrow="ALWAYS">
+               <children>
+                  <ProgressBar fx:id="progress" maxWidth="1.7976931348623157E308">
+                     <VBox.margin>
+                        <Insets top="4.0" />
+                     </VBox.margin>
+                  </ProgressBar>
+                  <Label fx:id="message">
+                     <VBox.margin>
+                        <Insets top="6.0" />
+                     </VBox.margin>
+                  </Label>
+               </children>
+            </VBox>
+            <ProgressIndicator fx:id="indicator" progress="1.0" />
+         </children>
+      </HBox>
+   </children>
+   <opaqueInsets>
+      <Insets />
+   </opaqueInsets>
+</VBox>
