@@ -49,8 +49,8 @@ Picky works on a directory as an entry point to your dataset. The directory may 
     
 To index the dataset, run `java -jar picky-indexer-0.2-SNAPSHOT-jar-with-dependencies.jar` with the following parameters:
 
-Parameter | Required | Description
---- |:---:|:---:| ---
+Parameter | Req. | Description
+--- |:---:|---
  `-s (--source)` | yes | Source directory to create index from (e.g. '/local/dataset')
 `-t (--target)` | yes | Target directory to create index in (e.g. '/local/index')
 `-r (--reference)` | yes | Unique userfriendly reference name
