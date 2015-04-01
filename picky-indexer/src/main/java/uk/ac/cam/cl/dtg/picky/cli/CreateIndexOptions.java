@@ -98,6 +98,7 @@ public class CreateIndexOptions {
 					.entryParser((Class<? extends IEntryParser>) Class.forName(entryParserClass))
 					.icon(icon != null ? Files.readBytesFromFile(new File(icon)) : new byte[0])
 					.url(url)
+					.reference(reference)
 					.sourceDir(new File(source))
 					.tmpDir(new File(tmp))
 					.logDir(new File(new File(target), "log"))
