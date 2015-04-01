@@ -49,18 +49,18 @@ Picky works on a directory as an entry point to your dataset. The directory may 
     
 To index the dataset, run `java -jar picky-indexer-0.2-SNAPSHOT-jar-with-dependencies.jar` with the following parameters:
 
-Parameter | Required | Default | Description
+Parameter | Required | Description
 --- |:---:|:---:| ---
- `-s (--source)` | yes | - | Source directory to create index from (e.g. '/local/dataset')
-`-t (--target)` | yes | - | Target directory to create index in (e.g. '/local/index')
-`-r (--reference)` | yes | - | Unique userfriendly reference name
-`-m (--tmp)` | yes | - | Tmp directory (e.g. '/tmp')
-`-p (--parser)` | yes | - | Full-quallified class name of IEntryParser implementation
-`-n (--description)` | no | - | Short dataset description
-`-i (--icon)` | no | - | Dataset or provider icon file (e.g. '/local/icon.png')
-`-u (--url)` | no | - | Website URL, e.g. further information related to the dataset
-`-l (--logLevel)` | no | INFO | Log Level
-`-c (--chunkSizeLimit)` | no | 5MB | Chunk size limit in byte
+ `-s (--source)` | yes | Source directory to create index from (e.g. '/local/dataset')
+`-t (--target)` | yes | Target directory to create index in (e.g. '/local/index')
+`-r (--reference)` | yes | Unique userfriendly reference name
+`-m (--tmp)` | yes | Tmp directory (e.g. '/tmp')
+`-p (--parser)` | yes | Full-quallified class name of IEntryParser implementation
+`-n (--description)` | no | Short dataset description
+`-i (--icon)` | no | Dataset or provider icon file (e.g. '/local/icon.png')
+`-u (--url)` | no | Website URL, e.g. further information related to the dataset
+`-l (--logLevel)` | no | Log Level (Default: INFO)
+`-c (--chunkSizeLimit)` | no | Chunk size limit in byte (Default: 5MB)
     
 Depending on the size of the dataset and the available computational resources, indexing will take quite some time, as the entire dataset will be read, parsed, compressed, hashed and stored.
     
