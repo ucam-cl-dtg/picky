@@ -30,6 +30,8 @@ import javafx.beans.Observable;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,8 @@ public abstract class AsyncBinding<T> extends ObjectBinding<T> {
 	private FutureTask<T> future;
 
 	private BooleanProperty busy = new SimpleBooleanProperty();
+
+	private StringProperty errorMessage = new SimpleStringProperty();
 
 	public AsyncBinding(Observable... dependencies) {
 		bind(dependencies);
@@ -61,7 +65,20 @@ public abstract class AsyncBinding<T> extends ObjectBinding<T> {
 				}
 			}
 		} else {
-			future = new FutureTask<T>(this::doCompute);
+			errorMessage.set(null);
+			future = new FutureTask<T>(this::doCompute) {
+				@Override
+				protected void done() {
+					try {
+						if (!isCancelled()) get();
+					} catch (Exception e) {
+						Platform.runLater(() -> {
+							errorMessage.set(e.getMessage());
+							LOG.error(e.getMessage(), e);
+						});
+					}
+				}
+			};
 			busy.set(true);
 			ExecutorService executor = Executors.newSingleThreadExecutor();
 			executor.execute(future);
@@ -70,6 +87,10 @@ public abstract class AsyncBinding<T> extends ObjectBinding<T> {
 		}
 
 		return null;
+	}
+
+	public StringProperty errorMessageProperty() {
+		return errorMessage;
 	}
 
 	protected abstract T doCompute() throws Exception;

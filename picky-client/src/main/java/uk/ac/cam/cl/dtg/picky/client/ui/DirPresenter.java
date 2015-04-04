@@ -31,15 +31,22 @@ import javafx.scene.control.TextField;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
+import org.controlsfx.validation.Severity;
+import org.controlsfx.validation.ValidationSupport;
+
+import uk.ac.cam.cl.dtg.picky.client.validation.ValidatorFactory;
+
 public class DirPresenter implements Initializable {
 
-	@FXML Label label;
-	@FXML TextField text;
+	@FXML
+	Label label;
+	@FXML
+	TextField text;
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
-		// ValidationSupport validationSupport = new ValidationSupport();
-		// validationSupport.registerValidator(text, false, Validator.createEmptyValidator("Text is required", Severity.WARNING));
+		ValidationSupport validationSupport = new ValidationSupport();
+		validationSupport.registerValidator(text, false, ValidatorFactory.createIsDirectoryValidator(Severity.WARNING));
 	}
 
 	public void setLabel(String label) {

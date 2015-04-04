@@ -66,6 +66,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import org.controlsfx.control.CheckTreeView;
+import org.controlsfx.validation.ValidationMessage;
+import org.controlsfx.validation.decoration.GraphicValidationDecoration;
 import org.reactfx.EventStreams;
 
 import uk.ac.cam.cl.dtg.picky.client.ClientApp;
@@ -128,9 +130,11 @@ public class ClientPresenter implements Initializable {
 	private TitledPane datasetTitledPane;
 	@FXML
 	private TitledPane changesTitledPane;
+	@FXML
+	private TextField serverText;
+	@FXML
+	private TextField referenceText;
 
-	private DirView serverDir;
-	private DirView datasetDir;
 	private DirView targetDir;
 	private DirView cacheDir;
 	private DirView tempDir;
@@ -158,15 +162,11 @@ public class ClientPresenter implements Initializable {
 		entrySelectionTreeView.showRootProperty().set(false);
 		entrySelectionVBox.getChildren().add(entrySelectionTreeView);
 
-		serverDir = new DirView("Server");
-		datasetDir = new DirView("Dataset");
 		targetDir = new DirView("Target");
 		cacheDir = new DirView("Cache");
 		tempDir = new DirView("Temp");
 
 		settings.getChildren().addAll(
-				serverDir.getView(),
-				datasetDir.getView(),
 				targetDir.getView(),
 				cacheDir.getView(),
 				tempDir.getView());
@@ -174,8 +174,8 @@ public class ClientPresenter implements Initializable {
 		restoreSettings();
 
 		model = new ClientModel(
-				serverDir.getText().textProperty(),
-				datasetDir.getText().textProperty(),
+				serverText.textProperty(),
+				referenceText.textProperty(),
 				targetDir.getText().textProperty(),
 				cacheDir.getText().textProperty(),
 				tempDir.getText().textProperty(),
@@ -183,9 +183,6 @@ public class ClientPresenter implements Initializable {
 				entrySelectionTreeView.getCheckModel().getCheckedItems());
 
 		fileFilterError.textProperty().bind(model.getFilterErrorBinding());
-		datasetLabel.textProperty().bind(Bindings.selectString(model.getDatasetBinding(), "description"));
-		hashLabel.textProperty().bind(Bindings.selectString(model.getDatasetBinding(), "id"));
-		contentLabel.textProperty().bind(Bindings.selectString(model.getDatasetBinding(), "contentDescription"));
 		fileFilterTick.visibleProperty().bind(Bindings.isNotNull(model.getFilterBinding()));
 		fileSelectionTitledPane.textProperty().bind(model.getFileSelectionLabel());
 		entrySelectionTitledPane.textProperty().bind(model.getEntrySelectionLabel());
@@ -195,7 +192,6 @@ public class ClientPresenter implements Initializable {
 		BusyGraphicsBinding.install(changesTitledPane, model.getPlanBinding());
 		BusyGraphicsBinding.install(entrySelectionTitledPane, model.getFileSelectionBinding());
 
-		urlLink.textProperty().bind(Bindings.selectString(model.getDatasetBinding(), "url"));
 		urlLink.setOnAction((e) -> {
 			ClientApp.getInstance().getHostServices().showDocument(urlLink.getText());
 		});
@@ -207,8 +203,16 @@ public class ClientPresenter implements Initializable {
 				if (newValue != null) {
 					Image image = new Image(new ByteArrayInputStream(newValue.getIcon()));
 					logoImage.setImage(image);
+					datasetLabel.setText(newValue.getDescription());
+					hashLabel.setText(newValue.getId());
+					contentLabel.setText(newValue.getContentDescription());
+					urlLink.setText(newValue.getUrl());
 				} else {
 					logoImage.setImage(null);
+					datasetLabel.setText("");
+					hashLabel.setText("");
+					contentLabel.setText("");
+					urlLink.setText("");
 				}
 			}
 		});
@@ -223,15 +227,12 @@ public class ClientPresenter implements Initializable {
 			public void changed(ObservableValue<? extends CheckBoxTreeItem<String>> observable, CheckBoxTreeItem<String> oldValue,
 					CheckBoxTreeItem<String> newValue) {
 				if (newValue == null) {
-					System.out.println("oldValue" + oldValue);
 					entrySelection = CheckTreeViewPersistenceUtil.persist(entrySelectionTreeView);
 					entrySelectionTreeView.getRoot().getChildren().clear();
 					entrySelectionTreeView.getCheckModel().getCheckedItems().clear();
-					System.out.println("null: " + entrySelection);
 				} else {
 					entrySelectionTreeView.getRoot().getChildren().addAll(newValue.getChildren());
 					CheckTreeViewPersistenceUtil.restore(entrySelectionTreeView, entrySelection);
-					System.out.println("nonnull: " + entrySelection);
 				}
 			}
 		});
@@ -285,6 +286,18 @@ public class ClientPresenter implements Initializable {
 		areaChartBox.getChildren().add(areaChart);
 
 		EventStreams.ticks(Duration.ofSeconds(1)).subscribe(new AreaChartUpdater());
+
+		GraphicValidationDecoration validationDecoration = new GraphicValidationDecoration();
+		validationDecoration.applyRequiredDecoration(serverText);
+
+		model.getDatasetBinding().errorMessageProperty().addListener((ChangeListener<String>) (observable, oldValue, newValue) -> {
+			if (newValue != null) {
+				validationDecoration.applyValidationDecoration(ValidationMessage.error(serverText, newValue));
+			} else {
+				validationDecoration.removeDecorations(serverText);
+			}
+		});
+
 	}
 
 	private void toggleDownload(ActionEvent event) {
@@ -399,9 +412,9 @@ public class ClientPresenter implements Initializable {
 			throw new RuntimeException(e);
 		}
 
+		serverText.setText(properties.getProperty(SETTINGS_SERVER, ""));
+		referenceText.setText(properties.getProperty(SETTINGS_DATASET, ""));
 		cacheDir.getText().setText(properties.getProperty(SETTINGS_CACHE, ""));
-		datasetDir.getText().setText(properties.getProperty(SETTINGS_DATASET, ""));
-		serverDir.getText().setText(properties.getProperty(SETTINGS_SERVER, ""));
 		targetDir.getText().setText(properties.getProperty(SETTINGS_TARGET, ""));
 		tempDir.getText().setText(properties.getProperty(SETTINGS_TEMP, ""));
 		fileFilter.setText(properties.getProperty(SETTINGS_FILE_FILTER, ""));
@@ -413,8 +426,8 @@ public class ClientPresenter implements Initializable {
 		Properties settings = new Properties();
 
 		settings.put(SETTINGS_CACHE, cacheDir.getText().getText());
-		settings.put(SETTINGS_DATASET, datasetDir.getText().getText());
-		settings.put(SETTINGS_SERVER, serverDir.getText().getText());
+		settings.put(SETTINGS_DATASET, referenceText.getText());
+		settings.put(SETTINGS_SERVER, serverText.getText());
 		settings.put(SETTINGS_TARGET, targetDir.getText().getText());
 		settings.put(SETTINGS_TEMP, tempDir.getText().getText());
 		settings.put(SETTINGS_FILE_FILTER, fileFilter.getText());

@@ -61,7 +61,9 @@ public class DatasetBinding extends AsyncBinding<Dataset> {
 		ReadingRepository repository = new ReadingRepository(readingStrategy);
 		String datasetId = repository.resolveReference(datasetReference);
 
-		if (datasetId == null || !repository.contains(datasetId)) return null;
+		if (datasetId == null || !repository.contains(datasetId)) {
+			throw new RuntimeException("<" + datasetReference + "> does not reference a dataset");
+		}
 
 		Dataset dataset = repository.retrieve(datasetId, Dataset.class);
 
