@@ -33,6 +33,7 @@ import org.controlsfx.control.CheckTreeView;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
+import com.google.common.base.Strings;
 
 public class CheckTreeViewPersistenceUtil {
 
@@ -54,7 +55,7 @@ public class CheckTreeViewPersistenceUtil {
 	}
 
 	public static void restore(CheckTreeView<String> tree, String settings) {
-		List<String> items = Arrays.asList(settings.split("(?<!\\\\);"));
+		List<String> items = Arrays.asList(Strings.nullToEmpty(settings).split("(?<!\\\\);"));
 
 		for (String itemString : items) {
 			List<String> path = Arrays.asList(itemString.split("(?<!\\\\)/"));
