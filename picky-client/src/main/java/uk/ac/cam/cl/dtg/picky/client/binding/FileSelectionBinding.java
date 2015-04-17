@@ -72,8 +72,6 @@ public class FileSelectionBinding extends AsyncBinding<List<FileEntry>> {
 	protected List<FileEntry> doCompute() throws Exception {
 		if (dataset == null || filter == null) return null;
 
-		System.out.println("FileSelectionBinding.doCompute()");
-
 		return dataset.getFiles()
 				.stream()
 				.filter(this::include)

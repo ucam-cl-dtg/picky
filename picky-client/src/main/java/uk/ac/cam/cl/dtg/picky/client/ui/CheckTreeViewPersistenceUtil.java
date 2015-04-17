@@ -106,6 +106,7 @@ public class CheckTreeViewPersistenceUtil {
 		}
 
 		List<String> nodesEscaped = path.stream()
+				.filter(s -> s != null)
 				.map(s -> s.replaceAll(";", "\\\\;"))
 				.map(s -> s.replaceAll("/", "\\\\/"))
 				.collect(Collectors.toList());

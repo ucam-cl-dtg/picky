@@ -89,8 +89,6 @@ public class PlanBinding extends AsyncBinding<Plan> {
 	protected Plan doCompute() throws Exception {
 		if (cache == null || Strings.isNullOrEmpty(target) || fileSelection == null) return null;
 
-		System.out.println("PlanBinding.doCompute()");
-
 		File targetFile = new File(target);
 		if (!targetFile.isDirectory()) return null;
 

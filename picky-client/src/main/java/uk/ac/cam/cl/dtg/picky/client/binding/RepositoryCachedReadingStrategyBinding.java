@@ -59,8 +59,6 @@ public class RepositoryCachedReadingStrategyBinding extends AsyncBinding<CachedR
 	}
 
 	protected CachedReadingStrategy doCompute() {
-		System.out.println("RepositoryCachedReadingStrategyBinding.doCompute()");
-
 		if (Strings.isNullOrEmpty(server) || Strings.isNullOrEmpty(cacheString) || Strings.isNullOrEmpty(tmpString)) return null;
 
 		File tmp = new File(tmpString);
@@ -69,7 +67,6 @@ public class RepositoryCachedReadingStrategyBinding extends AsyncBinding<CachedR
 		if (!tmp.isDirectory() || !cache.isDirectory()) return null;
 
 		ReadingRepositoryStrategy readingStrategy = StrategySelector.getReadingStrategy(server);
-		System.out.println("readingStrategy: " + readingStrategy);
 		FileRepositoryStrategy writingStrategy = new FileRepositoryStrategy(cache, tmp);
 
 		return new CachedReadingStrategy(readingStrategy, writingStrategy);
