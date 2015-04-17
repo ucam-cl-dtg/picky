@@ -20,10 +20,15 @@ package uk.ac.cam.cl.dtg.picky.engine;
  * #L%
  */
 
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +41,8 @@ public class PausableExecutor extends ScheduledThreadPoolExecutor {
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
 	private boolean isPaused;
+
+	List<WeakReference<Future<?>>> pendingTasks = Collections.synchronizedList(new ArrayList<WeakReference<Future<?>>>());
 
 	private final Monitor monitor = new Monitor();
 	private final Monitor.Guard paused = new Monitor.Guard(monitor) {
@@ -75,9 +82,9 @@ public class PausableExecutor extends ScheduledThreadPoolExecutor {
 			@Override
 			public T call() throws Exception {
 				try {
-					return task.call();
-				}
-				catch (Exception e) {
+					T result = task.call();
+					return result;
+				} catch (Exception e) {
 					e.printStackTrace();
 					log.error(e.getMessage(), e);
 					throw e;
@@ -85,7 +92,20 @@ public class PausableExecutor extends ScheduledThreadPoolExecutor {
 			}
 		};
 
-		return super.submit(wrappedTask);
+		Future<T> future = super.submit(wrappedTask);
+
+		pendingTasks.add(new WeakReference<Future<?>>(future));
+
+		return future;
+	}
+
+	public void cancelRemainingTasks() {
+		shutdown();
+		pendingTasks.stream().filter(w -> w.get() != null).map(WeakReference::get).forEach((f) -> {
+			if (f != null) {
+				f.cancel(false);
+			}
+		});
 	}
 
 	public void pause() {

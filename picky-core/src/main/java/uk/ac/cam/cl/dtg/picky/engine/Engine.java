@@ -140,14 +140,17 @@ public class Engine {
 
 	public void resume() {
 		parallelExecutor.resume();
+		parallelExecutor.resume();
 	}
 
 	public void pause() {
 		parallelExecutor.pause();
+		parallelExecutor.pause();
 	}
 
 	public void stop() {
-		parallelExecutor.shutdown();
+		parallelExecutor.cancelRemainingTasks();
+		sequentialExecutor.cancelRemainingTasks();
 	}
 
 	public void addListener(ProgressListener listener) {

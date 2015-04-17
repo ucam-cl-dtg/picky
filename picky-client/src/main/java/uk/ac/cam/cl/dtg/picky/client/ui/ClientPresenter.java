@@ -148,13 +148,14 @@ public class ClientPresenter implements Initializable {
 	private ClientModel model;
 
 	private XYChart.Series<Number, Number> byteDownloadSeries;
-	private XYChart.Series<Number, Number> byteReadSeries;
-	private XYChart.Series<Number, Number> byteWriteSeries;
+	// private XYChart.Series<Number, Number> byteReadSeries;
+	// private XYChart.Series<Number, Number> byteWriteSeries;
 
 	private NumberAxis xAxis;
 	private NumberAxis yAxis;
 
 	private DateFormat timeFormat;
+	private Button applyButton;
 
 	@Override
 	public void initialize(URL url, ResourceBundle rb) {
@@ -166,21 +167,13 @@ public class ClientPresenter implements Initializable {
 		cacheDir = new DirView("Cache");
 		tempDir = new DirView("Temp");
 
-		settings.getChildren().addAll(
-				targetDir.getView(),
-				cacheDir.getView(),
-				tempDir.getView());
+		settings.getChildren().addAll(targetDir.getView(), cacheDir.getView(), tempDir.getView());
 
 		restoreSettings();
 
-		model = new ClientModel(
-				serverText.textProperty(),
-				referenceText.textProperty(),
-				targetDir.getText().textProperty(),
-				cacheDir.getText().textProperty(),
-				tempDir.getText().textProperty(),
-				fileFilter.textProperty(),
-				entrySelectionTreeView.getCheckModel().getCheckedItems());
+		model = new ClientModel(serverText.textProperty(), referenceText.textProperty(), targetDir.getText().textProperty(), cacheDir
+				.getText().textProperty(), tempDir.getText().textProperty(), fileFilter.textProperty(), entrySelectionTreeView
+				.getCheckModel().getCheckedItems());
 
 		fileFilterError.textProperty().bind(model.getFilterErrorBinding());
 		fileFilterTick.visibleProperty().bind(Bindings.isNotNull(model.getFilterBinding()));
@@ -194,6 +187,10 @@ public class ClientPresenter implements Initializable {
 
 		urlLink.setOnAction((e) -> {
 			ClientApp.getInstance().getHostServices().showDocument(urlLink.getText());
+		});
+		
+		model.getPlanBinding().addListener((ChangeListener<Object>) (observable, oldValue, newValue) -> {
+			stopApplyingChanges();
 		});
 
 		model.getDatasetBinding().addListener(new ChangeListener<Dataset>() {
@@ -243,13 +240,15 @@ public class ClientPresenter implements Initializable {
 		byteDownloadSeries.setName("Download");
 		byteDownloadSeries.getData().add(new Data<Number, Number>(getCurrentTS(), 0L));
 
-		byteReadSeries = new AreaChart.Series<Number, Number>();
-		byteReadSeries.setName("Read");
-		byteReadSeries.getData().add(new Data<Number, Number>(getCurrentTS(), 0L));
-
-		byteWriteSeries = new AreaChart.Series<Number, Number>();
-		byteWriteSeries.setName("Write");
-		byteWriteSeries.getData().add(new Data<Number, Number>(getCurrentTS(), 0L));
+		// byteReadSeries = new AreaChart.Series<Number, Number>();
+		// byteReadSeries.setName("Read");
+		// byteReadSeries.getData().add(
+		// new Data<Number, Number>(getCurrentTS(), 0L));
+		//
+		// byteWriteSeries = new AreaChart.Series<Number, Number>();
+		// byteWriteSeries.setName("Write");
+		// byteWriteSeries.getData().add(
+		// new Data<Number, Number>(getCurrentTS(), 0L));
 
 		timeFormat = DateFormat.getTimeInstance(DateFormat.DEFAULT);
 
@@ -281,7 +280,9 @@ public class ClientPresenter implements Initializable {
 			}
 		};
 		areaChart.setAnimated(false);
-		areaChart.getData().addAll(Arrays.asList(byteReadSeries, byteWriteSeries, byteDownloadSeries));
+		areaChart.getData().addAll(Arrays.asList( // byteReadSeries,
+													// byteWriteSeries,
+				byteDownloadSeries));
 
 		areaChartBox.getChildren().add(areaChart);
 
@@ -300,12 +301,36 @@ public class ClientPresenter implements Initializable {
 
 	}
 
-	private void toggleDownload(ActionEvent event) {
+	private void toggleApplyChanges(ActionEvent event) {
+		if (engine == null) {
+			startApplyingChanges();
+		} else {
+			stopApplyingChanges();
+		}
+	}
+
+	private void startApplyingChanges() {
+		if (engine != null)
+			stopApplyingChanges();
+
 		Plan plan = model.getPlanBinding().get();
 
 		engine = new Engine(model.getRepositoryBinding().get(), plan);
 		engine.addListener(new EngineProgressListener());
 		engine.execute();
+
+		if (applyButton != null)
+			applyButton.setText("Stop");
+	}
+
+	private void stopApplyingChanges() {
+		if (engine != null) {
+			engine.stop();
+			engine = null;
+		}
+
+		if (applyButton != null)
+			applyButton.setText("Start");
 	}
 
 	private long getCurrentTS() {
@@ -313,9 +338,11 @@ public class ClientPresenter implements Initializable {
 	}
 
 	private final class UpdateTasksListener implements ChangeListener<Plan> {
+
 		@Override
 		public void changed(ObservableValue<? extends Plan> observable, Plan oldPlan, Plan newPlan) {
 			tasks.clear();
+			applyButton = null;
 
 			if (newPlan != null) {
 				if (!newPlan.getDeleteDirActions().isEmpty()) {
@@ -347,8 +374,8 @@ public class ClientPresenter implements Initializable {
 					tasks.keySet().stream().sorted().map(tasks::get).map(t -> t.getView()).collect(Collectors.toList()));
 
 			if (!tasks.isEmpty()) {
-				Button applyButton = new Button("Apply Changes");
-				applyButton.setOnAction(ClientPresenter.this::toggleDownload);
+				applyButton = new Button("Start");
+				applyButton.setOnAction(ClientPresenter.this::toggleApplyChanges);
 				tasksVBox.getChildren().add(applyButton);
 			}
 
@@ -357,14 +384,17 @@ public class ClientPresenter implements Initializable {
 
 	private class AreaChartUpdater implements Consumer<Object> {
 		long downloaded;
-		long read;
-		long written;
+
+		// long read;
+		// long written;
 
 		@Override
 		public void accept(Object t) {
 			downloaded = updateDiff("Download", byteDownloadSeries, downloaded, engine != null ? engine.getBytesDownloaded() : 0);
-			read = updateDiff("Read", byteReadSeries, read, engine != null ? engine.getBytesReadFromCache() : 0);
-			written = updateDiff("Write", byteWriteSeries, written, engine != null ? engine.getBytesWrittenToTarget() : 0);
+			// read = updateDiff("Read", byteReadSeries, read, engine != null ?
+			// engine.getBytesReadFromCache() : 0);
+			// written = updateDiff("Write", byteWriteSeries, written, engine !=
+			// null ? engine.getBytesWrittenToTarget() : 0);
 
 			xAxis.setLowerBound(getCurrentTS() - DOWNLOAD_CHART_TICKS);
 			xAxis.setUpperBound(getCurrentTS() - 1);
@@ -399,18 +429,22 @@ public class ClientPresenter implements Initializable {
 	}
 
 	private void setProgress(Action action, String msg, int current, int total) {
-		((TaskItemPresenter) tasks.get(action).getPresenter()).update(msg, current);
+		TaskItemView taskItemView = tasks.get(action);
+
+		if (taskItemView != null)
+			((TaskItemPresenter) tasks.get(action).getPresenter()).update(msg, current);
 	}
 
 	public void restoreSettings() {
 		Properties properties = new Properties();
 
-		if (SETTINGS.exists()) try {
-			properties.load(new BufferedInputStream(new FileInputStream(SETTINGS)));
-			System.out.println(properties);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		if (SETTINGS.exists())
+			try {
+				properties.load(new BufferedInputStream(new FileInputStream(SETTINGS)));
+				System.out.println(properties);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
 
 		serverText.setText(properties.getProperty(SETTINGS_SERVER, ""));
 		referenceText.setText(properties.getProperty(SETTINGS_DATASET, ""));
