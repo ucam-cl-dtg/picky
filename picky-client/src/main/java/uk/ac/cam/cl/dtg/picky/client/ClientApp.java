@@ -30,8 +30,13 @@ import javafx.scene.image.Image;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Level;
+
 import uk.ac.cam.cl.dtg.picky.client.ui.ClientView;
 import uk.ac.cam.cl.dtg.picky.util.BuildProperties;
+import uk.ac.cam.cl.dtg.picky.util.LoggerConfigurer;
 
 public class ClientApp extends Application {
 
@@ -45,11 +50,15 @@ public class ClientApp extends Application {
 		return INSTANCE;
 	}
 
+	@Override
 	public void start(Stage stage) {
 		INSTANCE = this;
 
 		System.setProperty("prism.lcdtext", "false");
 		System.setProperty("prism.text", "t2k");
+
+		BasicConfigurator.configure();
+		LoggerConfigurer.configureConsoleAppender(Level.INFO);
 
 		Properties buildProperties = BuildProperties.readBuildProperties();
 		String version = buildProperties.getProperty("version");

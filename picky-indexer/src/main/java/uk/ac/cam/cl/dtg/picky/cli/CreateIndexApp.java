@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.cam.cl.dtg.picky.dataset.Dataset;
 import uk.ac.cam.cl.dtg.picky.dataset.DatasetConfig;
 import uk.ac.cam.cl.dtg.picky.dataset.DatasetFactory;
+import uk.ac.cam.cl.dtg.picky.util.LoggerConfigurer;
 import de.ecclesia.kipeto.repository.WritingRepository;
 
 public class CreateIndexApp {

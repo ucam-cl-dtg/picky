@@ -1,4 +1,4 @@
-package uk.ac.cam.cl.dtg.picky.cli;
+package uk.ac.cam.cl.dtg.picky.util;
 
 /*
  * #%L
