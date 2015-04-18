@@ -79,6 +79,8 @@ import uk.ac.cam.cl.dtg.picky.engine.ProgressEvent.Action;
 import uk.ac.cam.cl.dtg.picky.engine.ProgressListener;
 import uk.ac.cam.cl.dtg.picky.planner.Plan;
 import de.ecclesia.kipeto.common.util.FileSizeFormatter;
+import de.ecclesia.kipeto.repository.CachedReadingStrategy;
+import de.ecclesia.kipeto.repository.ReadingRepositoryStrategy;
 
 public class ClientPresenter implements Initializable {
 
@@ -94,46 +96,26 @@ public class ClientPresenter implements Initializable {
 
 	private static final long DOWNLOAD_CHART_TICKS = TimeUnit.HOURS.toSeconds(1);
 
-	@FXML
-	private VBox fileSelectionVBox;
-	@FXML
-	private VBox entrySelectionVBox;
-	@FXML
-	private VBox tasksVBox;
-	@FXML
-	private TitledPane fileSelectionTitledPane;
-	@FXML
-	private TitledPane entrySelectionTitledPane;
-	@FXML
-	private VBox settings;
-	@FXML
-	private VBox areaChartBox;
-	@FXML
-	private Label datasetLabel;
-	@FXML
-	private Label hashLabel;
-	@FXML
-	private Label contentLabel;
-	@FXML
-	private Hyperlink urlLink;
-	@FXML
-	private ImageView logoImage;
-	@FXML
-	private TextField fileFilter;
-	@FXML
-	private Label fileFilterError;
-	@FXML
-	private TilePane fileFilterContext;
-	@FXML
-	private ImageView fileFilterTick;
-	@FXML
-	private TitledPane datasetTitledPane;
-	@FXML
-	private TitledPane changesTitledPane;
-	@FXML
-	private TextField serverText;
-	@FXML
-	private TextField referenceText;
+	@FXML private VBox fileSelectionVBox;
+	@FXML private VBox entrySelectionVBox;
+	@FXML private VBox tasksVBox;
+	@FXML private TitledPane fileSelectionTitledPane;
+	@FXML private TitledPane entrySelectionTitledPane;
+	@FXML private VBox settings;
+	@FXML private VBox areaChartBox;
+	@FXML private Label datasetLabel;
+	@FXML private Label hashLabel;
+	@FXML private Label contentLabel;
+	@FXML private Hyperlink urlLink;
+	@FXML private ImageView logoImage;
+	@FXML private TextField fileFilter;
+	@FXML private Label fileFilterError;
+	@FXML private TilePane fileFilterContext;
+	@FXML private ImageView fileFilterTick;
+	@FXML private TitledPane datasetTitledPane;
+	@FXML private TitledPane changesTitledPane;
+	@FXML private TextField serverText;
+	@FXML private TextField referenceText;
 
 	private DirView targetDir;
 	private DirView cacheDir;
@@ -188,7 +170,7 @@ public class ClientPresenter implements Initializable {
 		urlLink.setOnAction((e) -> {
 			ClientApp.getInstance().getHostServices().showDocument(urlLink.getText());
 		});
-		
+
 		model.getPlanBinding().addListener((ChangeListener<Object>) (observable, oldValue, newValue) -> {
 			stopApplyingChanges();
 		});
@@ -310,8 +292,7 @@ public class ClientPresenter implements Initializable {
 	}
 
 	private void startApplyingChanges() {
-		if (engine != null)
-			stopApplyingChanges();
+		if (engine != null) stopApplyingChanges();
 
 		Plan plan = model.getPlanBinding().get();
 
@@ -319,8 +300,7 @@ public class ClientPresenter implements Initializable {
 		engine.addListener(new EngineProgressListener());
 		engine.execute();
 
-		if (applyButton != null)
-			applyButton.setText("Stop");
+		if (applyButton != null) applyButton.setText("Stop");
 	}
 
 	private void stopApplyingChanges() {
@@ -329,8 +309,7 @@ public class ClientPresenter implements Initializable {
 			engine = null;
 		}
 
-		if (applyButton != null)
-			applyButton.setText("Start");
+		if (applyButton != null) applyButton.setText("Start");
 	}
 
 	private long getCurrentTS() {
@@ -383,14 +362,22 @@ public class ClientPresenter implements Initializable {
 	}
 
 	private class AreaChartUpdater implements Consumer<Object> {
-		long downloaded;
+		long bytesReadLastTime;
 
 		// long read;
 		// long written;
 
 		@Override
 		public void accept(Object t) {
-			downloaded = updateDiff("Download", byteDownloadSeries, downloaded, engine != null ? engine.getBytesDownloaded() : 0);
+			long bytesRead = 0;
+
+			CachedReadingStrategy cachedReadingStrategy = model.getRepositoryBinding().get();
+			if (cachedReadingStrategy != null) {
+				ReadingRepositoryStrategy repository = cachedReadingStrategy.getRepository();
+				bytesRead = repository.bytesRead();
+			}
+
+			bytesReadLastTime = updateDiff("Download", byteDownloadSeries, bytesReadLastTime, bytesRead);
 			// read = updateDiff("Read", byteReadSeries, read, engine != null ?
 			// engine.getBytesReadFromCache() : 0);
 			// written = updateDiff("Write", byteWriteSeries, written, engine !=
@@ -400,8 +387,8 @@ public class ClientPresenter implements Initializable {
 			xAxis.setUpperBound(getCurrentTS() - 1);
 		}
 
-		private long updateDiff(String label, Series<Number, Number> series, long lastRead, long currentRead) {
-			long diff = lastRead <= currentRead ? currentRead - lastRead : currentRead;
+		private long updateDiff(String label, Series<Number, Number> series, long bytesReadLastTime, long currentRead) {
+			long diff = bytesReadLastTime <= currentRead ? currentRead - bytesReadLastTime : currentRead;
 
 			series.setName(label + (diff > 0 ? " (" + FileSizeFormatter.formateBytes(diff, 1) + "/s)" : ""));
 			series.getData().add(new Data<>(getCurrentTS(), diff));
@@ -431,20 +418,17 @@ public class ClientPresenter implements Initializable {
 	private void setProgress(Action action, String msg, int current, int total) {
 		TaskItemView taskItemView = tasks.get(action);
 
-		if (taskItemView != null)
-			((TaskItemPresenter) tasks.get(action).getPresenter()).update(msg, current);
+		if (taskItemView != null) ((TaskItemPresenter) tasks.get(action).getPresenter()).update(msg, current);
 	}
 
 	public void restoreSettings() {
 		Properties properties = new Properties();
 
-		if (SETTINGS.exists())
-			try {
-				properties.load(new BufferedInputStream(new FileInputStream(SETTINGS)));
-				System.out.println(properties);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
+		if (SETTINGS.exists()) try {
+			properties.load(new BufferedInputStream(new FileInputStream(SETTINGS)));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 
 		serverText.setText(properties.getProperty(SETTINGS_SERVER, ""));
 		referenceText.setText(properties.getProperty(SETTINGS_DATASET, ""));

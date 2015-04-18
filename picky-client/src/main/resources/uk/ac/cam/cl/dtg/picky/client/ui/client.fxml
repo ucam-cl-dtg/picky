@@ -224,7 +224,7 @@
 										</VBox>
 									</content>
 								</TitledPane>
-								<TitledPane animated="false" text="Progress" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.vgrow="NEVER">
+								<TitledPane animated="false" text="Download Progress" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.vgrow="NEVER">
 									<graphic>
 										<ImageView pickOnBounds="true" preserveRatio="true">
 											<image>
