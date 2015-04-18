@@ -24,18 +24,18 @@ public class ProgressEvent {
 
 	private final Action action;
 	private final String msg;
-	private final int current;
-	private final int total;
+	private final int tasksDone;
+	private long bytesDone;
 
 	public enum Action {
 		DELETE_DIR, DELETE_FILE, MAKE_DIR, DOWNLOAD_CHUNK, INSTALL_FILE, UPDATE_FILE
 	}
 
-	public ProgressEvent(Action action, String msg, int current, int total) {
+	public ProgressEvent(Action action, String msg, int tasksDone, long bytesDone) {
 		this.action = action;
 		this.msg = msg;
-		this.current = current;
-		this.total = total;
+		this.tasksDone = tasksDone;
+		this.bytesDone = bytesDone;
 	}
 
 	public Action getAction() {
@@ -46,17 +46,12 @@ public class ProgressEvent {
 		return msg;
 	}
 
-	public int getCurrent() {
-		return current;
+	public int getTasksDone() {
+		return tasksDone;
 	}
 
-	public int getTotal() {
-		return total;
-	}
-
-	@Override
-	public String toString() {
-		return "ProgressEvent [action=" + action + ", msg=" + msg + ", current=" + current + ", total=" + total + "]";
+	public long getBytesDone() {
+		return bytesDone;
 	}
 
 }

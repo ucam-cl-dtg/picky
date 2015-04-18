@@ -28,7 +28,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +66,7 @@ public class PausableExecutor extends ScheduledThreadPoolExecutor {
 		super(corePoolSize, threadFactory);
 	}
 
+	@Override
 	protected void beforeExecute(Thread t, Runnable r) {
 		super.beforeExecute(t, r);
 		monitor.enterWhenUninterruptibly(notPaused);
@@ -77,6 +77,7 @@ public class PausableExecutor extends ScheduledThreadPoolExecutor {
 		}
 	}
 
+	@Override
 	public <T> Future<T> submit(final Callable<T> task) {
 		Callable<T> wrappedTask = new Callable<T>() {
 			@Override

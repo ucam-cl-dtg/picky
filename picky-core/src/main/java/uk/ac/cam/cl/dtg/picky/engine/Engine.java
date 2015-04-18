@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -64,8 +65,6 @@ public class Engine {
 	private CachedReadingStrategy readingStrategy;
 	private ReadingRepository repository;
 
-	private long bytesWritten;
-
 	private Map<Action, AtomicInteger> progressCounter = new ImmutableMap.Builder<Action, AtomicInteger>()
 			.put(Action.DELETE_DIR, new AtomicInteger())
 			.put(Action.DELETE_FILE, new AtomicInteger())
@@ -75,8 +74,18 @@ public class Engine {
 			.put(Action.UPDATE_FILE, new AtomicInteger())
 			.build();
 
+	private Map<Action, AtomicLong> byteProgress = new ImmutableMap.Builder<Action, AtomicLong>()
+			.put(Action.DELETE_DIR, new AtomicLong())
+			.put(Action.DELETE_FILE, new AtomicLong())
+			.put(Action.DOWNLOAD_CHUNK, new AtomicLong())
+			.put(Action.INSTALL_FILE, new AtomicLong())
+			.put(Action.MAKE_DIR, new AtomicLong())
+			.put(Action.UPDATE_FILE, new AtomicLong())
+			.build();
+
 	private Map<Action, Integer> totalActionNumber;
 	private Set<String> chunksToDownload;
+	private Map<String, Chunk> chunksById;
 
 	public Engine(CachedReadingStrategy readingStrategy, Plan plan) {
 		this.readingStrategy = readingStrategy;
@@ -84,6 +93,7 @@ public class Engine {
 		this.plan = plan;
 		this.chunksToDownload = Sets.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 		this.chunksToDownload.addAll(plan.getChunksToDownload().stream().map(Chunk::getBlobId).collect(Collectors.toList()));
+		this.chunksById = plan.getChunksToDownload().stream().collect(Collectors.toMap(Chunk::getBlobId, (c) -> c));
 
 		int availableProcessors = Runtime.getRuntime().availableProcessors();
 
@@ -174,13 +184,15 @@ public class Engine {
 	}
 
 	public long getBytesWrittenToTarget() {
-		return bytesWritten;
+		return byteProgress.get(Action.INSTALL_FILE).get();
 	}
 
 	private void installFile(File target, long lastModified, List<Block> blocks, byte[] fileHeader) {
 		if (blocks.isEmpty()) return;
 
 		try {
+			AtomicLong fileByteProgress = byteProgress.get(Action.INSTALL_FILE);
+
 			BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(target));
 
 			List<BlockInputSource> sources = blocks.stream()
@@ -189,13 +201,13 @@ public class Engine {
 
 			// Write FileHeader
 			outputStream.write(fileHeader);
-			bytesWritten += fileHeader.length;
+			fileByteProgress.addAndGet(fileHeader.length);
 
 			// the next source to read from will always be first in the list
 			while (sources.get(0).hasNext()) {
 				byte[] data = sources.get(0).read();
-				bytesWritten += data.length;
 				outputStream.write(data);
+				fileByteProgress.addAndGet(data.length);
 
 				// Make sure we read from right block next time
 				Collections.sort(sources);
@@ -215,15 +227,22 @@ public class Engine {
 
 	private class RepositoryCallback implements IRepositoryCallback {
 
+		@Override
 		public Blob getOrDownload(String id) throws IOException {
 			Blob blob;
+
 			if (chunksToDownload.contains(id)) {
+				AtomicLong bytesDownloaded = byteProgress.get(Action.DOWNLOAD_CHUNK);
+
 				Integer total = totalActionNumber.get(Action.DOWNLOAD_CHUNK);
 
-				fireOnActionStart(new ProgressEvent(Action.DOWNLOAD_CHUNK, "Downloading " + id, total - chunksToDownload.size(), total));
+				fireOnActionStart(new ProgressEvent(Action.DOWNLOAD_CHUNK, "Downloading " + id, total - chunksToDownload.size(), bytesDownloaded.get()));
 				blob = repository.retrieve(id, Blob.class);
 				chunksToDownload.remove(id);
-				fireOnActionFinished(new ProgressEvent(Action.DOWNLOAD_CHUNK, null, total - chunksToDownload.size(), total));
+
+				bytesDownloaded.addAndGet(chunksById.get(id).getLengthCompressed());
+
+				fireOnActionFinished(new ProgressEvent(Action.DOWNLOAD_CHUNK, null, total - chunksToDownload.size(), bytesDownloaded.get()));
 			} else {
 				blob = repository.retrieve(id, Blob.class);
 			}
@@ -240,12 +259,12 @@ public class Engine {
 				try {
 					log.info(msg);
 
-					Integer total = totalActionNumber.get(action);
 					AtomicInteger current = progressCounter.get(action);
+					AtomicLong actionByteProgress = byteProgress.get(action);
 
-					fireOnActionStart(new ProgressEvent(action, msg, current.get(), total));
+					fireOnActionStart(new ProgressEvent(action, msg, current.get(), actionByteProgress.get()));
 					task.run();
-					fireOnActionFinished(new ProgressEvent(action, null, current.incrementAndGet(), total));
+					fireOnActionFinished(new ProgressEvent(action, null, current.incrementAndGet(), actionByteProgress.get()));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

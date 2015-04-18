@@ -25,9 +25,14 @@ import com.airhacks.afterburner.views.FXMLView;
 public class TaskItemView extends FXMLView {
 
 	public TaskItemView(String task, int total) {
+		this(task, total, 0L);
+	}
+
+	public TaskItemView(String task, int total, long totalSize) {
 		TaskItemPresenter presenter = (TaskItemPresenter) getPresenter();
 		presenter.setTitle(task);
 		presenter.setTotal(total);
+		presenter.setTotalSize(totalSize);
 	}
 
 }

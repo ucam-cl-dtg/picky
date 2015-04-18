@@ -30,6 +30,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ProgressIndicator;
+import de.ecclesia.kipeto.common.util.FileSizeFormatter;
 
 public class TaskItemPresenter implements Initializable {
 
@@ -40,6 +41,7 @@ public class TaskItemPresenter implements Initializable {
 
 	private String title;
 	private int total;
+	private long totalSize;
 
 	private NumberFormat format = NumberFormat.getInstance();
 
@@ -51,20 +53,35 @@ public class TaskItemPresenter implements Initializable {
 		this.total = total;
 	}
 
-	@Override
-	public void initialize(URL location, ResourceBundle resources) {
-		update(null, 0);
+	public void setTotalSize(long totalSize) {
+		this.totalSize = totalSize;
 	}
 
-	public void update(String msg, int current) {
-		Platform.runLater(() -> {
-			double currentProgress = total == 0 ? 0 : current / (total * 1.0);
+	@Override
+	public void initialize(URL location, ResourceBundle resources) {
+		update(null, 0, 0L);
+	}
 
-			task.setText(title + " (" + format.format(current) + " of " + format.format(total) + ")");
+	public void update(String msg, int tasksDone, long bytesDone) {
+		Platform.runLater(() -> {
+			double currentProgress = total == 0 ? 0 : tasksDone / (total * 1.0);
+
+			String tasksProgress = format.format(tasksDone) + " of " + format.format(total);
+			String bytesProgress = "";
+
+			if (totalSize > 0 && bytesDone > 0) {
+				bytesProgress = " (" + FileSizeFormatter.formateBytes(bytesDone, 2) + " of " + FileSizeFormatter.formateBytes(totalSize, 2) + ")";
+			} else if (totalSize > 0) {
+				bytesProgress = " (" + FileSizeFormatter.formateBytes(totalSize, 2) + ")";
+			}
+
+			String taskText = title + ": " + tasksProgress + bytesProgress;
+
+			task.setText(taskText);
 			progress.setProgress(currentProgress);
 			indicator.setProgress(currentProgress);
 
-			if (msg != null || current == total) this.message.setText(msg);
+			if (msg != null || tasksDone == total) this.message.setText(msg);
 		});
 	}
 }

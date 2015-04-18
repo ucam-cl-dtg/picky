@@ -72,6 +72,7 @@ import org.reactfx.EventStreams;
 
 import uk.ac.cam.cl.dtg.picky.client.ClientApp;
 import uk.ac.cam.cl.dtg.picky.client.binding.BusyGraphicsBinding;
+import uk.ac.cam.cl.dtg.picky.dataset.Chunk;
 import uk.ac.cam.cl.dtg.picky.dataset.Dataset;
 import uk.ac.cam.cl.dtg.picky.engine.Engine;
 import uk.ac.cam.cl.dtg.picky.engine.ProgressEvent;
@@ -337,11 +338,13 @@ public class ClientPresenter implements Initializable {
 				}
 
 				if (!newPlan.getChunksToDownload().isEmpty()) {
-					tasks.put(Action.DOWNLOAD_CHUNK, new TaskItemView("Download Chunks", newPlan.getChunksToDownload().size()));
+					long totalDownloadSize = newPlan.getChunksToDownload().stream().mapToLong(Chunk::getLengthCompressed).sum();
+					tasks.put(Action.DOWNLOAD_CHUNK, new TaskItemView("Download Chunks", newPlan.getChunksToDownload().size(), totalDownloadSize));
 				}
 
 				if (!newPlan.getInstallFileActions().isEmpty()) {
-					tasks.put(Action.INSTALL_FILE, new TaskItemView("Install Files", newPlan.getInstallFileActions().size()));
+					long totalFileSize = newPlan.getInstallFileActions().stream().mapToLong(a -> a.getFileSize()).sum();
+					tasks.put(Action.INSTALL_FILE, new TaskItemView("Install Files", newPlan.getInstallFileActions().size(), totalFileSize));
 				}
 
 				if (!newPlan.getUpdateFileActions().isEmpty()) {
@@ -405,20 +408,19 @@ public class ClientPresenter implements Initializable {
 
 		@Override
 		public void onActionStart(ProgressEvent event) {
-			setProgress(event.getAction(), event.getMsg(), event.getCurrent(), event.getTotal());
+			setProgress(event.getAction(), event.getMsg(), event.getTasksDone(), event.getBytesDone());
 		}
 
 		@Override
 		public void onActionFinished(ProgressEvent event) {
-			setProgress(event.getAction(), event.getMsg(), event.getCurrent(), event.getTotal());
+			setProgress(event.getAction(), event.getMsg(), event.getTasksDone(), event.getBytesDone());
 		}
 
 	}
 
-	private void setProgress(Action action, String msg, int current, int total) {
+	private void setProgress(Action action, String msg, int tasksDone, long bytesDone) {
 		TaskItemView taskItemView = tasks.get(action);
-
-		if (taskItemView != null) ((TaskItemPresenter) tasks.get(action).getPresenter()).update(msg, current);
+		if (taskItemView != null) ((TaskItemPresenter) tasks.get(action).getPresenter()).update(msg, tasksDone, bytesDone);
 	}
 
 	public void restoreSettings() {
