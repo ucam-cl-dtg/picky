@@ -67,11 +67,12 @@ public class DatasetBinding extends AsyncBinding<Dataset> {
 
 		Dataset dataset = repository.retrieve(datasetId, Dataset.class);
 
-		printDetails(dataset);
+		// printDetails(dataset);
 
 		return dataset;
 	}
 
+	@SuppressWarnings("unused")
 	private void printDetails(Dataset dataset) {
 		List<FileEntry> files = dataset.getFiles();
 
