@@ -57,6 +57,7 @@ import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
@@ -117,6 +118,8 @@ public class ClientPresenter implements Initializable {
 	@FXML private TitledPane changesTitledPane;
 	@FXML private TextField serverText;
 	@FXML private TextField referenceText;
+	@FXML private ProgressIndicator datasetProgress;
+	@FXML private Label datasetStatusLabel;
 
 	private DirView targetDir;
 	private DirView cacheDir;
@@ -164,7 +167,7 @@ public class ClientPresenter implements Initializable {
 		entrySelectionTitledPane.textProperty().bind(model.getEntrySelectionLabel());
 
 		BusyGraphicsBinding.install(fileSelectionTitledPane, model.getDatasetBinding());
-		BusyGraphicsBinding.install(datasetTitledPane, model.getDatasetBinding());
+		BusyGraphicsBinding.install(datasetTitledPane, model.getDatasetBinding(), datasetProgress, datasetStatusLabel);
 		BusyGraphicsBinding.install(changesTitledPane, model.getPlanBinding());
 		BusyGraphicsBinding.install(entrySelectionTitledPane, model.getFileSelectionBinding());
 

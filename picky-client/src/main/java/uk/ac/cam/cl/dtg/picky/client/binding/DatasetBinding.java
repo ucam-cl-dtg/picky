@@ -22,7 +22,9 @@ package uk.ac.cam.cl.dtg.picky.client.binding;
 
 import java.util.List;
 
+import javafx.application.Platform;
 import javafx.beans.binding.ObjectBinding;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import uk.ac.cam.cl.dtg.picky.dataset.Dataset;
 import uk.ac.cam.cl.dtg.picky.dataset.FileEntry;
@@ -32,12 +34,13 @@ import com.google.common.base.Strings;
 import de.ecclesia.kipeto.repository.CachedReadingStrategy;
 import de.ecclesia.kipeto.repository.ReadingRepository;
 
-public class DatasetBinding extends AsyncBinding<Dataset> {
+public class DatasetBinding extends AsyncBinding<Dataset> implements IStatusProvider {
 
 	private String datasetReference;
 	private CachedReadingStrategy readingStrategy;
 	private StringProperty datasetDir;
 	private ObjectBinding<CachedReadingStrategy> repositoryBinding;
+	private StringProperty status = new SimpleStringProperty();
 
 	public DatasetBinding(StringProperty datasetDir, ObjectBinding<CachedReadingStrategy> repositoryBinding) {
 		super(datasetDir, repositoryBinding);
@@ -55,21 +58,41 @@ public class DatasetBinding extends AsyncBinding<Dataset> {
 	}
 
 	@Override
+	public StringProperty statusProperty() {
+		return status;
+	}
+
+	@Override
 	protected Dataset doCompute() throws Exception {
-		if (readingStrategy == null || Strings.isNullOrEmpty(datasetReference)) return null;
+		setStatus("");
+		try {
+			if (readingStrategy == null || Strings.isNullOrEmpty(datasetReference)) return null;
 
-		ReadingRepository repository = new ReadingRepository(readingStrategy);
-		String datasetId = repository.resolveReference(datasetReference);
+			ReadingRepository repository = new ReadingRepository(readingStrategy);
 
-		if (datasetId == null || !repository.contains(datasetId)) {
-			throw new RuntimeException("<" + datasetReference + "> does not reference a dataset");
+			setStatus("Resolving dataset reference");
+			String datasetId = repository.resolveReference(datasetReference);
+
+			if (datasetId == null || !repository.contains(datasetId)) {
+				throw new RuntimeException("<" + datasetReference + "> does not reference a dataset");
+			}
+
+			setStatus("Retrieving dataset index");
+			Dataset dataset = repository.retrieve(datasetId, Dataset.class);
+
+			// printDetails(dataset);
+
+			setStatus("");
+
+			return dataset;
+		} catch (Exception e) {
+			setStatus(e.getMessage());
+			throw new RuntimeException(e);
 		}
+	}
 
-		Dataset dataset = repository.retrieve(datasetId, Dataset.class);
-
-		// printDetails(dataset);
-
-		return dataset;
+	private void setStatus(String statusText) {
+		Platform.runLater(() -> status.set(statusText));
 	}
 
 	@SuppressWarnings("unused")

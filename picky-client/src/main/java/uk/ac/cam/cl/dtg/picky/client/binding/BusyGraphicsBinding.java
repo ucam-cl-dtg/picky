@@ -23,8 +23,10 @@ package uk.ac.cam.cl.dtg.picky.client.binding;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.TitledPane;
 
 public class BusyGraphicsBinding extends ObjectBinding<Node> {
 
@@ -52,6 +54,18 @@ public class BusyGraphicsBinding extends ObjectBinding<Node> {
 			return busyIndicator;
 		} else {
 			return nonBusy;
+		}
+	}
+
+	public static void install(TitledPane target, AsyncBinding<?> asyncBinding, ProgressIndicator progress, Label label) {
+		BusyGraphicsBinding busyGraphicsBinding = new BusyGraphicsBinding(asyncBinding, target.getGraphic());
+
+		target.graphicProperty().bind(busyGraphicsBinding);
+		progress.visibleProperty().bind(busyGraphicsBinding.isEqualTo(target.getGraphic()));
+		label.visibleProperty().bind(busyGraphicsBinding.isEqualTo(target.getGraphic()));
+
+		if (asyncBinding instanceof IStatusProvider) {
+			label.textProperty().bind(((IStatusProvider) asyncBinding).statusProperty());
 		}
 	}
 

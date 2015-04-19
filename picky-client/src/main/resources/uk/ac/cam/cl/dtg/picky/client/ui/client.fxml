@@ -58,7 +58,7 @@
 
 								<TitledPane collapsible="false" minHeight="-Infinity" minWidth="-Infinity" text="Settings">
 									<graphic>
-										<ImageView pickOnBounds="true" preserveRatio="true">
+										<ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
 											<image>
 												<Image url="img/database-cloud.png" />
 											</image>
@@ -102,10 +102,9 @@
 									</content>
 								</TitledPane>
 
-								<TitledPane fx:id="fileSelectionTitledPane" collapsible="false" maxHeight="-Infinity" prefHeight="250.0" text="File Selection"
-									GridPane.columnIndex="0" GridPane.rowIndex="1">
+								<TitledPane fx:id="fileSelectionTitledPane" collapsible="false" maxHeight="-Infinity" prefHeight="250.0" text="File Selection" GridPane.columnIndex="0" GridPane.rowIndex="1">
 									<graphic>
-										<ImageView pickOnBounds="true" preserveRatio="true">
+										<ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
 											<image>
 												<Image url="img/document-tree.png" />
 											</image>
@@ -132,18 +131,16 @@
 													</image>
 												</ImageView>
 												<Label fx:id="fileFilterError" text="ErrorMsg" textFill="#c61010" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-												<TilePane fx:id="fileFilterContext" hgap="10.0" prefHeight="200.0" prefWidth="200.0" tileAlignment="CENTER_LEFT" vgap="10.0"
-													GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.valignment="TOP" />
+												<TilePane fx:id="fileFilterContext" hgap="10.0" prefHeight="200.0" prefWidth="200.0" tileAlignment="CENTER_LEFT" vgap="10.0" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.valignment="TOP" />
 												<Label text="Context" GridPane.rowIndex="2" GridPane.valignment="TOP" />
 											</children>
 										</GridPane>
 									</content>
 								</TitledPane>
 
-								<TitledPane fx:id="entrySelectionTitledPane" collapsible="false" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" prefHeight="250.0"
-									text="Entry Selection" GridPane.columnIndex="1" GridPane.rowIndex="1">
+								<TitledPane fx:id="entrySelectionTitledPane" collapsible="false" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" prefHeight="250.0" text="Entry Selection" GridPane.columnIndex="1" GridPane.rowIndex="1">
 									<graphic>
-										<ImageView pickOnBounds="true" preserveRatio="true">
+										<ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
 											<image>
 												<Image url="img/document-node.png" />
 											</image>
@@ -153,67 +150,74 @@
 										<VBox fx:id="entrySelectionVBox" />
 									</content>
 								</TitledPane>
-								<TitledPane fx:id="datasetTitledPane" animated="false" collapsible="false" maxHeight="1.7976931348623157E308" text="Dataset"
-									GridPane.columnIndex="1" GridPane.vgrow="NEVER">
+								<TitledPane fx:id="datasetTitledPane" animated="false" collapsible="false" maxHeight="1.7976931348623157E308" text="Dataset" GridPane.columnIndex="1" GridPane.vgrow="NEVER">
 									<graphic>
-										<ImageView pickOnBounds="true" preserveRatio="true">
+										<ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
 											<image>
 												<Image url="img/folder-zipper.png" />
 											</image>
 										</ImageView>
 									</graphic>
 									<content>
-										<GridPane hgap="10.0" vgap="5.0">
-											<columnConstraints>
-												<ColumnConstraints hgrow="NEVER" minWidth="10.0" />
-												<ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="10.0" />
-												<ColumnConstraints hgrow="NEVER" minWidth="10.0" />
-											</columnConstraints>
-											<rowConstraints>
-												<RowConstraints maxHeight="-Infinity" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
-												<RowConstraints minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
-												<RowConstraints maxHeight="-Infinity" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
-												<RowConstraints maxHeight="-Infinity" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
-												<RowConstraints maxHeight="-Infinity" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
-												<RowConstraints maxHeight="-Infinity" minHeight="10.0" vgrow="SOMETIMES" />
-											</rowConstraints>
-											<children>
-												<Label text="Dataset" />
-												<Label text="Hash" GridPane.rowIndex="2" />
-												<Label text="Content" GridPane.rowIndex="3" />
-												<Label text="URL" GridPane.rowIndex="1" />
-												<Label fx:id="datasetLabel" text="" GridPane.columnIndex="1">
-													<opaqueInsets>
-														<Insets />
-													</opaqueInsets>
-													<GridPane.margin>
-														<Insets left="5.0" />
-													</GridPane.margin>
-												</Label>
-												<Label fx:id="hashLabel" text="" GridPane.columnIndex="1" GridPane.rowIndex="2">
-													<GridPane.margin>
-														<Insets left="5.0" />
-													</GridPane.margin>
-												</Label>
-												<Label fx:id="contentLabel" text="" GridPane.columnIndex="1" GridPane.rowIndex="3">
-													<GridPane.margin>
-														<Insets left="5.0" />
-													</GridPane.margin>
-												</Label>
-												<Hyperlink fx:id="urlLink" graphicTextGap="0.0" text="" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="1" />
-												<ImageView fx:id="logoImage" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="2"
-													GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.rowSpan="5" GridPane.valignment="TOP" GridPane.vgrow="NEVER" />
-											</children>
-										</GridPane>
+                              <StackPane>
+                                 <children>
+      										<GridPane hgap="10.0" vgap="5.0">
+      											<columnConstraints>
+      												<ColumnConstraints hgrow="NEVER" minWidth="10.0" />
+      												<ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="10.0" />
+      												<ColumnConstraints hgrow="NEVER" minWidth="10.0" />
+      											</columnConstraints>
+      											<rowConstraints>
+      												<RowConstraints maxHeight="-Infinity" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
+      												<RowConstraints minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
+      												<RowConstraints maxHeight="-Infinity" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
+      												<RowConstraints maxHeight="-Infinity" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
+      												<RowConstraints maxHeight="-Infinity" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
+      												<RowConstraints maxHeight="-Infinity" minHeight="10.0" vgrow="SOMETIMES" />
+      											</rowConstraints>
+      											<children>
+      												<Label text="Dataset" />
+      												<Label text="Hash" GridPane.rowIndex="2" />
+      												<Label text="Content" GridPane.rowIndex="3" />
+      												<Label text="URL" GridPane.rowIndex="1" />
+      												<Label fx:id="datasetLabel" text="" GridPane.columnIndex="1">
+      													<opaqueInsets>
+      														<Insets />
+      													</opaqueInsets>
+      													<GridPane.margin>
+      														<Insets left="5.0" />
+      													</GridPane.margin>
+      												</Label>
+      												<Label fx:id="hashLabel" text="" GridPane.columnIndex="1" GridPane.rowIndex="2">
+      													<GridPane.margin>
+      														<Insets left="5.0" />
+      													</GridPane.margin>
+      												</Label>
+      												<Label fx:id="contentLabel" text="" GridPane.columnIndex="1" GridPane.rowIndex="3">
+      													<GridPane.margin>
+      														<Insets left="5.0" />
+      													</GridPane.margin>
+      												</Label>
+      												<Hyperlink fx:id="urlLink" graphicTextGap="0.0" text="" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.rowIndex="1" />
+      												<ImageView fx:id="logoImage" fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="2" GridPane.halignment="RIGHT" GridPane.hgrow="NEVER" GridPane.rowSpan="5" GridPane.valignment="TOP" GridPane.vgrow="NEVER" />
+      											</children>
+      										</GridPane>
+                                    <VBox>
+                                       <children>
+                                          <ProgressIndicator fx:id="datasetProgress" visible="false" VBox.vgrow="ALWAYS" />
+                                          <Label fx:id="datasetStatusLabel" alignment="CENTER" contentDisplay="CENTER" maxWidth="1.7976931348623157E308" text="Label" />
+                                       </children>
+                                    </VBox>
+                                 </children>
+                              </StackPane>
 									</content>
 								</TitledPane>
 
 
-								<TitledPane fx:id="changesTitledPane" maxHeight="1.7976931348623157E308" text="Changes" GridPane.columnIndex="0" GridPane.rowIndex="2"
-									GridPane.valignment="TOP" GridPane.vgrow="ALWAYS">
+								<TitledPane fx:id="changesTitledPane" maxHeight="1.7976931348623157E308" text="Changes" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.valignment="TOP" GridPane.vgrow="ALWAYS">
 
 									<graphic>
-										<ImageView pickOnBounds="true" preserveRatio="true">
+										<ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
 											<image>
 												<Image url="img/dashboard.png" />
 											</image>
@@ -226,7 +230,7 @@
 								</TitledPane>
 								<TitledPane animated="false" text="Download Progress" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.vgrow="NEVER">
 									<graphic>
-										<ImageView pickOnBounds="true" preserveRatio="true">
+										<ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true" preserveRatio="true">
 											<image>
 												<Image url="img/system-monitor.png" />
 											</image>
