@@ -64,10 +64,12 @@ public class ClientModel {
 	private RepositoryCachedReadingStrategyBinding repositoryBinding;
 	private FileContextLabelBinding fileContextLabelBinding;
 	private ObservableList<Label> fileContextLabels = FXCollections.<Label> observableArrayList();
+	private ObservableList<TreeItem<String>> entrySelection;
+	private StringProperty serverURL;
 
 	public ClientModel(
 			StringProperty serverURL,
-			StringProperty datasetDir,
+			StringProperty datasetURL,
 			StringProperty targetDir,
 			StringProperty cacheDir,
 			StringProperty tmpDir,
@@ -75,7 +77,7 @@ public class ClientModel {
 			ObservableList<TreeItem<String>> entrySelection) {
 
 		this.repositoryBinding = new RepositoryCachedReadingStrategyBinding(serverURL, cacheDir, tmpDir);
-		this.datasetBinding = new DatasetBinding(datasetDir, repositoryBinding);
+		this.datasetBinding = new DatasetBinding(datasetURL, repositoryBinding);
 		this.fileTreeBinding = new FileTreeBinding(datasetBinding);
 		this.cacheRepositoryBinding = new CacheRepositoryBinding(cacheDir, tmpDir);
 		this.fileContextSampleBinding = new FileContextSampleBinding(datasetBinding);
@@ -86,6 +88,8 @@ public class ClientModel {
 		this.entryTreeBinding = new EntryTreeBinding(fileSelectionBinding);
 		this.fileSelectionLabel = new FileSelectionLabel(datasetBinding, fileSelectionBinding);
 		this.entrySelectionLabel = new EntrySelectionLabel(fileSelectionBinding, entrySelection);
+		this.entrySelection = entrySelection;
+		this.serverURL = serverURL;
 		this.fileContextLabelBinding.addListener(new ChangeListener<List<Label>>() {
 
 			@Override
@@ -122,6 +126,10 @@ public class ClientModel {
 		return datasetBinding;
 	}
 
+	public ObservableList<TreeItem<String>> getEntrySelection() {
+		return entrySelection;
+	}
+
 	public ObservableList<Label> getFileContextLabels() {
 		return fileContextLabels;
 	}
@@ -140,6 +148,10 @@ public class ClientModel {
 
 	public EntrySelectionLabel getEntrySelectionLabel() {
 		return entrySelectionLabel;
+	}
+
+	public StringProperty getServerURL() {
+		return serverURL;
 	}
 
 	public FileSelectionBinding getFileSelectionBinding() {

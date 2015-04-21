@@ -115,12 +115,12 @@ public class Engine {
 
 		plan.getDeleteFileActions().stream().forEach(
 				a -> sequentialExecutor.submit(wrapAction(Action.DELETE_FILE, "Deleting file " + a.getFile(), () -> {
-					Preconditions.checkArgument(a.getFile().delete(), "Could not delete " + a.getFile());
+					Preconditions.checkArgument(!a.getFile().exists() || a.getFile().delete(), "Could not delete " + a.getFile());
 				})));
 
 		plan.getDeleteDirActions().stream().forEach(
 				a -> sequentialExecutor.submit(wrapAction(Action.DELETE_DIR, "Deleting dir " + a.getDir(), () -> {
-					Preconditions.checkArgument(a.getDir().delete(), "Could not delete " + a.getDir());
+					Preconditions.checkArgument(!a.getDir().exists() || a.getDir().delete(), "Could not delete " + a.getDir());
 				})));
 
 		plan.getMakeDirActions().stream().forEach(
@@ -236,7 +236,8 @@ public class Engine {
 
 				Integer total = totalActionNumber.get(Action.DOWNLOAD_CHUNK);
 
-				fireOnActionStart(new ProgressEvent(Action.DOWNLOAD_CHUNK, "Downloading " + id, total - chunksToDownload.size(), bytesDownloaded.get()));
+				fireOnActionStart(new ProgressEvent(Action.DOWNLOAD_CHUNK, "Downloading " + id, total - chunksToDownload.size(),
+						bytesDownloaded.get()));
 				blob = repository.retrieve(id, Blob.class);
 				chunksToDownload.remove(id);
 

@@ -72,6 +72,7 @@ import org.controlsfx.validation.decoration.GraphicValidationDecoration;
 import org.reactfx.EventStreams;
 
 import uk.ac.cam.cl.dtg.picky.client.ClientApp;
+import uk.ac.cam.cl.dtg.picky.client.analytics.Analytics;
 import uk.ac.cam.cl.dtg.picky.client.binding.BusyGraphicsBinding;
 import uk.ac.cam.cl.dtg.picky.dataset.Chunk;
 import uk.ac.cam.cl.dtg.picky.dataset.Dataset;
@@ -304,6 +305,8 @@ public class ClientPresenter implements Initializable {
 		engine.addListener(new EngineProgressListener());
 		engine.execute();
 
+		Analytics.sendAnalytics(model, "start_applying_changes");
+
 		if (applyButton != null) applyButton.setText("Stop");
 	}
 
@@ -311,6 +314,8 @@ public class ClientPresenter implements Initializable {
 		if (engine != null) {
 			engine.stop();
 			engine = null;
+
+			Analytics.sendAnalytics(model, "stop_applying_changes");
 		}
 
 		if (applyButton != null) applyButton.setText("Start");
@@ -342,7 +347,8 @@ public class ClientPresenter implements Initializable {
 
 				if (!newPlan.getChunksToDownload().isEmpty()) {
 					long totalDownloadSize = newPlan.getChunksToDownload().stream().mapToLong(Chunk::getLengthCompressed).sum();
-					tasks.put(Action.DOWNLOAD_CHUNK, new TaskItemView("Download Chunks", newPlan.getChunksToDownload().size(), totalDownloadSize));
+					tasks.put(Action.DOWNLOAD_CHUNK, new TaskItemView("Download Chunks", newPlan.getChunksToDownload().size(),
+							totalDownloadSize));
 				}
 
 				if (!newPlan.getInstallFileActions().isEmpty()) {
@@ -461,6 +467,8 @@ public class ClientPresenter implements Initializable {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+
+		Analytics.sendAnalytics(model, "close");
 	}
 
 	@FXML
