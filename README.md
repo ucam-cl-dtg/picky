@@ -82,6 +82,23 @@ A common way of publishing would hence be setting up an arbitrary webserver (e.g
 ### 4. Updating the dataset
 Updating the dataset is easy - simply repeat the indexing process, using the already existing index as target. Updating can be performed without interfering with clients downloading an already published version from the same index. If the same reference name is used, subsequent downloads will the point to the new version. You can, however, choose to incorporate some versioning scheme for the reference name, to allow access to prior versions of the dataset. Note that indexing will only add changed data to the index, so updates are fairly resource efficient both in terms of server storage and bandwidth. 
 
+# Usage statistics upload
+On begin and end of the download process, Picky tries to report usage statistics to the dataset publisher to allow for a better understanding of which parts of the dataset are relevant for clients. It will do so by posting a UTF-8 plain text file to the server URL + /analytics. The information collected are in detail:
+- dataset Id
+- dataset description
+- number of chunks in dataset
+- number of files in dataset
+- average number of blocks in dataset
+- file filter
+- number of matching files
+- selected entries
+- number of files and directories to create, update or delete
+- number of chunks to download
+- remaining bytes to download
+- bytes downloaded 
+
+Note that no other information - especially no private information regarding the user's system or files - are transmitted. See [Analytics.java](https://github.com/ucam-cl-dtg/picky/blob/master/picky-client/src/main/java/uk/ac/cam/cl/dtg/picky/client/analytics/Analytics.java) for details.
+
 ## Downloading
 
 To download a dataset, run `java -jar picky-client-0.2-SNAPSHOT.jar`. The client can be used as follows:
@@ -110,6 +127,11 @@ Any time settings or selections are changed, the client analyses the target dire
 ![apply changes](https://raw.githubusercontent.com/ucam-cl-dtg/picky/master/documentation/images/apply-changes.png)
 
 # Changelog
+
+## 0.2 (2015-04-21)
+- Upload usage statistics
+- Enhanced progress feedback
+- Start/stop option
 
 ## 0.1 (2015-03-27)
 - First version published
