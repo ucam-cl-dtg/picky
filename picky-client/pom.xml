@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>uk.ac.cam.cl.dtg.picky</groupId>
 		<artifactId>picky-parent</artifactId>
-		<version>0.2</version>
+		<version>0.3-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>picky-client</artifactId>
@@ -16,7 +16,7 @@
 		<dependency>
 			<groupId>uk.ac.cam.cl.dtg.picky</groupId>
 			<artifactId>picky-core</artifactId>
-			<version>0.2</version>
+			<version>0.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.airhacks</groupId>

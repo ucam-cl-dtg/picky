@@ -5,7 +5,7 @@
 
 	<groupId>uk.ac.cam.cl.dtg.picky</groupId>
 	<artifactId>picky-parent</artifactId>
-	<version>0.2</version>
+	<version>0.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Picky</name>
