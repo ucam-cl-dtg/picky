@@ -39,6 +39,8 @@ import uk.ac.cam.cl.dtg.picky.dataset.BlockFactory;
 import uk.ac.cam.cl.dtg.picky.dataset.Dataset;
 import uk.ac.cam.cl.dtg.picky.dataset.FileEntry;
 
+import com.google.common.base.Strings;
+
 public class FileSelectionBinding extends AsyncBinding<List<FileEntry>> {
 
 	private static final Logger LOG = LoggerFactory.getLogger(BlockFactory.class);
@@ -79,7 +81,7 @@ public class FileSelectionBinding extends AsyncBinding<List<FileEntry>> {
 	}
 
 	private boolean include(FileEntry entry) {
-		if (filter.isEmpty()) return true;
+		if (Strings.isNullOrEmpty(filter)) return true;
 
 		try {
 			// Remove all attributes that will be overwritten anyway
