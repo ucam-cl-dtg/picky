@@ -144,6 +144,8 @@ public class ClientPresenter implements Initializable {
 	private DateFormat timeFormat;
 	private Button applyButton;
 
+	private Properties properties;
+
 	@Override
 	public void initialize(URL url, ResourceBundle rb) {
 		entrySelectionTreeView = new CheckTreeView<String>(new CheckBoxTreeItem<String>());
@@ -205,16 +207,17 @@ public class ClientPresenter implements Initializable {
 
 		model.getEntryTreeBinding().addListener(new ChangeListener<CheckBoxTreeItem<String>>() {
 
-			private String entrySelection;
+			private String entrySelection = properties.getProperty(SETTINGS_ENTRY_SELECTION, "");
 
 			@Override
 			public void changed(ObservableValue<? extends CheckBoxTreeItem<String>> observable, CheckBoxTreeItem<String> oldValue,
 					CheckBoxTreeItem<String> newValue) {
-				if (newValue == null) {
+
+				if (newValue == null && oldValue != null) {
 					entrySelection = CheckTreeViewPersistenceUtil.persist(entrySelectionTreeView);
 					entrySelectionTreeView.getRoot().getChildren().clear();
 					entrySelectionTreeView.getCheckModel().getCheckedItems().clear();
-				} else {
+				} else if (newValue != null) {
 					entrySelectionTreeView.getRoot().getChildren().addAll(newValue.getChildren());
 					CheckTreeViewPersistenceUtil.restore(entrySelectionTreeView, entrySelection);
 				}
@@ -433,7 +436,7 @@ public class ClientPresenter implements Initializable {
 	}
 
 	public void restoreSettings() {
-		Properties properties = new Properties();
+		properties = new Properties();
 
 		if (SETTINGS.exists()) try {
 			properties.load(new BufferedInputStream(new FileInputStream(SETTINGS)));
@@ -447,23 +450,19 @@ public class ClientPresenter implements Initializable {
 		targetDir.getText().setText(properties.getProperty(SETTINGS_TARGET, ""));
 		tempDir.getText().setText(properties.getProperty(SETTINGS_TEMP, ""));
 		fileFilter.setText(properties.getProperty(SETTINGS_FILE_FILTER, ""));
-
-		CheckTreeViewPersistenceUtil.restore(entrySelectionTreeView, properties.getProperty(SETTINGS_ENTRY_SELECTION, ""));
 	}
 
 	public void persistSettings() {
-		Properties settings = new Properties();
-
-		settings.put(SETTINGS_CACHE, cacheDir.getText().getText());
-		settings.put(SETTINGS_DATASET, referenceText.getText());
-		settings.put(SETTINGS_SERVER, serverText.getText());
-		settings.put(SETTINGS_TARGET, targetDir.getText().getText());
-		settings.put(SETTINGS_TEMP, tempDir.getText().getText());
-		settings.put(SETTINGS_FILE_FILTER, fileFilter.getText());
-		settings.put(SETTINGS_ENTRY_SELECTION, CheckTreeViewPersistenceUtil.persist(entrySelectionTreeView));
+		properties.put(SETTINGS_CACHE, cacheDir.getText().getText());
+		properties.put(SETTINGS_DATASET, referenceText.getText());
+		properties.put(SETTINGS_SERVER, serverText.getText());
+		properties.put(SETTINGS_TARGET, targetDir.getText().getText());
+		properties.put(SETTINGS_TEMP, tempDir.getText().getText());
+		properties.put(SETTINGS_FILE_FILTER, fileFilter.getText());
+		properties.put(SETTINGS_ENTRY_SELECTION, CheckTreeViewPersistenceUtil.persist(entrySelectionTreeView));
 
 		try {
-			settings.store(new BufferedOutputStream(new FileOutputStream(SETTINGS)), null);
+			properties.store(new BufferedOutputStream(new FileOutputStream(SETTINGS)), null);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

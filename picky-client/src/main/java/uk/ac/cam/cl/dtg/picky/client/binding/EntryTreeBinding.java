@@ -53,18 +53,18 @@ public class EntryTreeBinding extends AsyncBinding<CheckBoxTreeItem<String>> {
 
 	@Override
 	protected CheckBoxTreeItem<String> doCompute() throws Exception {
-		ListMultimap<String, String> entrySelectionOptions = ArrayListMultimap.create();
-
-		if (fileList != null) {
+		if (fileList != null && !fileList.isEmpty()) {
+			ListMultimap<String, String> entrySelectionOptions = ArrayListMultimap.create();
 
 			fileList.stream()
 					.flatMap(fileEntry -> fileEntry.getBlocks().stream())
 					.flatMap(block -> block.getAttributes().entrySet().stream())
 					.filter(e -> e.getValue() instanceof String)
 					.forEach(e -> entrySelectionOptions.put(e.getKey(), (String) e.getValue()));
+			return toTree(entrySelectionOptions);
+		} else {
+			return null;
 		}
-
-		return toTree(entrySelectionOptions);
 	}
 
 	private CheckBoxTreeItem<String> toTree(ListMultimap<String, String> selection) {
