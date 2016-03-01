@@ -122,10 +122,11 @@ public class BlockFactory {
 							chunkBuffer.getCompressedSize(),
 							chunkBuffer.getEntries()));
 			chunkBuffers.remove(attributes);
-			// chunkReferences.keySet().stream().map(a -> new Block(a, chunkReferences.get(a))).collect(Collectors.toList());
+			// chunkReferences.keySet().stream().map(a -> new Block(a,
+			// chunkReferences.get(a))).collect(Collectors.toList());
 
 		} catch (IOException e) {
-			throw new RuntimeException();
+			throw new RuntimeException(e);
 		}
 	}
 

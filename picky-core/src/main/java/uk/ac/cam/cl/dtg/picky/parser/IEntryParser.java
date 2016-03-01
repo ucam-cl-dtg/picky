@@ -20,12 +20,14 @@ package uk.ac.cam.cl.dtg.picky.parser;
  * #L%
  */
 
-import java.io.InputStream;
+import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
 import java.util.Optional;
 
-public interface IEntryParser {
+public interface IEntryParser extends Closeable {
 
-	public void open(InputStream stream);
+	public void open(File file) throws IOException;
 
 	public Optional<Entry> readEntry();
 

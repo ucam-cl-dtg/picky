@@ -20,20 +20,20 @@ package uk.ac.cam.cl.dtg.picky.dataset;
  * #L%
  */
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-import java.util.zip.GZIPInputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,18 +89,19 @@ public class DatasetFactory {
 		File resultCacheFile = new File(config.getTmpDir(), file.getName() + "_entry");
 
 		// FIXME: consider repeating file names
-		// if (resultCacheFile.exists() && file.lastModified() == resultCacheFile.lastModified()) {
-		// try (DataInputStream inputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(resultCacheFile)))) {
-		// logger.debug("Recovering {} from previous results", file);
-		// return FileEntry.fromStream(inputStream).get();
-		// } catch (IOException e) {
-		// logger.error(e.getMessage(), e);
-		// }
-		// }
+		if (resultCacheFile.exists() && file.lastModified() ==
+				resultCacheFile.lastModified()) {
+			try (DataInputStream inputStream = new DataInputStream(new
+					BufferedInputStream(new FileInputStream(resultCacheFile)))) {
+				logger.debug("Recovering {} from previous results", file);
+				return FileEntry.fromStream(inputStream).get();
+			} catch (IOException e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
 
-		try (InputStream inputStream = openStream(file)) {
-			IEntryParser entryParser = config.getEntryParser().newInstance();
-			entryParser.open(inputStream);
+		try (IEntryParser entryParser = config.getEntryParser().newInstance()) {
+			entryParser.open(file);
 
 			// FIXME:
 			String path = file.getAbsolutePath().substring(config.getSourceDir().getAbsolutePath().length() + 1).replace(".gz", "");
@@ -113,23 +114,12 @@ public class DatasetFactory {
 			DataOutputStream outputStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(resultCacheFile)));
 			entry.writeToStream(outputStream);
 			outputStream.close();
-			entryParser.close();
 			resultCacheFile.setLastModified(file.lastModified());
 
 			return entry;
 		} catch (Exception e) {
 			logger.error("Error while processing {}: {}", file, e.getMessage(), e);
 			return null;
-		}
-	}
-
-	private InputStream openStream(File file) throws IOException {
-		FileInputStream fileInputStream = new FileInputStream(file);
-
-		if (file.getName().toLowerCase().endsWith(".gz")) {
-			return new GZIPInputStream(fileInputStream);
-		} else {
-			return fileInputStream;
 		}
 	}
 }

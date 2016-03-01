@@ -24,6 +24,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPOutputStream;
 
 import de.ecclesia.kipeto.common.util.CountingOutputStream;
@@ -41,10 +42,12 @@ public class ChunkBuffer {
 	private long maxChuckSize;
 	private File tmp;
 
+	private static final AtomicInteger FILE_COUNTER = new AtomicInteger();
+
 	public ChunkBuffer(long chuckSize) {
 		this.maxChuckSize = chuckSize;
 		try {
-			tmp = File.createTempFile("chunk", "data");
+			tmp = new File("chunkdata_" + FILE_COUNTER.incrementAndGet());
 			tmp.deleteOnExit();
 
 			swappingFileOutputStream = new SwappingFileOutputStream(tmp);
