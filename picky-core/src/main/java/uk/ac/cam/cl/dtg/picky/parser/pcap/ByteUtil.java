@@ -37,4 +37,5 @@ public class ByteUtil {
 
 		return result;
 	}
+
 }

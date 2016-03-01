@@ -20,11 +20,16 @@ package uk.ac.cam.cl.dtg.picky.parser.pcap;
  * #L%
  */
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,31 +49,44 @@ public class PcapParser implements IEntryParser {
 
 	private GlobalHeader globalHeader;
 
-	private AtomicInteger atomicInteger = new AtomicInteger();
+	private AtomicInteger debugLatch = new AtomicInteger();
 
 	private byte[] packageHeaderBuffer = new byte[PACKAGE_HEADER_SIZE];
 
 	@Override
-	public void open(InputStream stream) {
-		this.stream = stream;
+	public void open(File file) throws IOException {
+		FileInputStream fileInputStream = new FileInputStream(file);
+
+		BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
+
+		if (file.getName().toLowerCase().endsWith(".gz")) {
+			this.stream = new GZIPInputStream(bufferedInputStream);
+		} else {
+			this.stream = bufferedInputStream;
+		}
+
 		this.globalHeader = readGlobalHeader();
 	}
 
 	@Override
 	public Optional<Entry> readEntry() {
 		try {
-			int read = stream.read(packageHeaderBuffer);
-			if (read == -1) return Optional.empty();
-			if (atomicInteger.incrementAndGet() > 10) return Optional.empty();
+			int read = IOUtils.read(stream, packageHeaderBuffer);
+			if (read == 0) return Optional.empty();
+			if (debugLatch.incrementAndGet() > 20) return Optional.empty();
 
-			Preconditions.checkArgument(read == PACKAGE_HEADER_SIZE, "Could not read packet header");
+			Preconditions.checkArgument(read == PACKAGE_HEADER_SIZE, "Could not read packet header (read " + read + ")");
 
 			PackageHeader packageHeader = new PackageHeader(globalHeader, packageHeaderBuffer);
 
 			byte[] buffer = new byte[packageHeader.getLength()];
-			read = stream.read(buffer);
-			Preconditions.checkArgument(read == packageHeader.getLength(), "Could not read packet");
+			read = IOUtils.read(stream, buffer);
+
+			Preconditions.checkArgument(read == packageHeader.getLength(), "Could not read packet (read " + read + ", expected "
+					+ packageHeader.getLength() + ")");
 			Packet packet = new Packet(packageHeader, buffer, globalHeader.isByteOrderSwapped());
+
+			System.out.println(packet.getEntry().getAttributes());
 
 			return Optional.of(packet.getEntry());
 		} catch (IOException e) {

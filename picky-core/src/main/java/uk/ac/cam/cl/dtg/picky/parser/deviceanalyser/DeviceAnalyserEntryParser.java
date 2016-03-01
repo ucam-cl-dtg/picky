@@ -20,15 +20,18 @@ package uk.ac.cam.cl.dtg.picky.parser.deviceanalyser;
  * #L%
  */
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,8 +70,17 @@ public class DeviceAnalyserEntryParser implements IEntryParser {
 	private DeviceInfoParser deviceInfoParser;
 
 	@Override
-	public void open(InputStream inputStream) {
-		reader = new BufferedReader(new InputStreamReader(inputStream));
+	public void open(File file) throws IOException {
+		FileInputStream fileInputStream = new FileInputStream(file);
+
+		BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
+
+		if (file.getName().toLowerCase().endsWith(".gz")) {
+			reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(bufferedInputStream)));
+		} else {
+			reader = new BufferedReader(new InputStreamReader(bufferedInputStream));
+		}
+
 		deviceInfoParser = new DeviceInfoParser();
 	}
 

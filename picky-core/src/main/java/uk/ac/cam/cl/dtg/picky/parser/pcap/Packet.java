@@ -64,11 +64,14 @@ public class Packet {
 		// FIXME: what is wrong with the etherType?
 
 		System.out.println(packageHeader);
+		System.out.println(Hex.fromBytes(buffer));
 		this.etherType = ByteUtil.readInt(buffer, 2, OFFSET_ETHERTYPE, false);
-		System.out.println(etherType);
+		System.out.println(String.format("%h", etherType));
 
 		if (etherType == ETHERNET_TYPE_IPV4) {
-			internetHeaderLength = (int) (ByteUtil.readInt(buffer, 1, OFFSET_ETHERNET_PAYLOAD, false) & 0x0F) * 4; // times 4-byte words
+			internetHeaderLength = (int) (ByteUtil.readInt(buffer, 1, OFFSET_ETHERNET_PAYLOAD, false) & 0x0F) * 4; // times
+																													// 4-byte
+																													// words
 			sourceAddress = InetAddress
 					.getByAddress(Arrays.copyOfRange(buffer, OFFSET_ETHERNET_PAYLOAD + 12, OFFSET_ETHERNET_PAYLOAD + 16));
 			destinationAddress = InetAddress.getByAddress(Arrays.copyOfRange(buffer, OFFSET_ETHERNET_PAYLOAD + 16,
@@ -93,8 +96,11 @@ public class Packet {
 
 		entry.getAttributes().put(KEY_ETHER_TYPE, String.format("%04x", (0xFFFF & etherType)).toUpperCase());
 
-		// if (sourceAddress != null) entry.getAttributes().put(KEY_SRC_ADR, sourceAddress.getHostAddress());
-		// if (destinationAddress != null) entry.getAttributes().put(KEY_DEST_ADR, destinationAddress.getHostAddress());
+		// if (sourceAddress != null) entry.getAttributes().put(KEY_SRC_ADR,
+		// sourceAddress.getHostAddress());
+		// if (destinationAddress != null)
+		// entry.getAttributes().put(KEY_DEST_ADR,
+		// destinationAddress.getHostAddress());
 		if (ipProtocol >= 0) entry.getAttributes().put(KEY_IP_PROTOCOL, IPProtocols.getKeyword(ipProtocol));
 		if (destinationPort >= 0) entry.getAttributes().put(KEY_DEST_PORT, "" + destinationPort);
 

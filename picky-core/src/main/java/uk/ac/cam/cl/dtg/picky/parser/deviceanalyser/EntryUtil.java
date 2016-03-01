@@ -198,6 +198,20 @@ public class EntryUtil {
 		}
 	}
 
+	public static String transformKey(String key) {
+		try {
+			String reducedKey = reduceKey(key);
+
+			if (EntryUtil.isValid(reducedKey)) {
+				return shortenKey(reducedKey);
+			} else {
+				return INVALID;
+			}
+		} catch (ArrayIndexOutOfBoundsException e) {
+			return INVALID;
+		}
+	}
+
 	public static String getValueFromLine(String line) {
 		String[] parts = line.split(";");
 
