@@ -28,9 +28,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.Properties;
 
-import javafx.collections.ObservableList;
-import javafx.scene.control.TreeItem;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
@@ -42,14 +39,15 @@ import org.apache.http.params.CoreProtocolPNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Strings;
+
+import de.ecclesia.kipeto.repository.CachedReadingStrategy;
+import javafx.collections.ObservableList;
+import javafx.scene.control.TreeItem;
 import uk.ac.cam.cl.dtg.picky.client.ui.ClientModel;
 import uk.ac.cam.cl.dtg.picky.dataset.Dataset;
 import uk.ac.cam.cl.dtg.picky.dataset.FileEntry;
 import uk.ac.cam.cl.dtg.picky.planner.Plan;
-
-import com.google.common.base.Strings;
-
-import de.ecclesia.kipeto.repository.CachedReadingStrategy;
 
 public class Analytics {
 
@@ -99,7 +97,7 @@ public class Analytics {
 	}
 
 	private static void upload(Properties properties, String datasetURL) {
-		if (datasetURL == null) return;
+		if (Strings.isNullOrEmpty(datasetURL)) return;
 		URL url;
 
 		try {
