@@ -31,11 +31,10 @@ import java.util.Properties;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.CoreProtocolPNames;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,10 +107,10 @@ public class Analytics {
 		}
 
 		try {
-			HttpClient client = new DefaultHttpClient();
-			client.getParams().setParameter(CoreProtocolPNames.PROTOCOL_VERSION, HttpVersion.HTTP_1_1);
+			CloseableHttpClient client = HttpClients.createDefault();
 
 			HttpPost post = new HttpPost(url.toURI());
+			post.setProtocolVersion(HttpVersion.HTTP_1_1);
 			post.setHeader("Content-Type", "text/plain; charset=utf-8");
 
 			StringWriter stringWriter = new StringWriter();

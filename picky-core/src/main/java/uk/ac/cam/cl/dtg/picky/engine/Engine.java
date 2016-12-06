@@ -45,7 +45,6 @@ import uk.ac.cam.cl.dtg.picky.planner.Plan;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
 
 import de.ecclesia.kipeto.repository.Blob;
 import de.ecclesia.kipeto.repository.CachedReadingStrategy;
@@ -91,7 +90,7 @@ public class Engine {
 		this.readingStrategy = readingStrategy;
 		this.repository = new ReadingRepository(readingStrategy);
 		this.plan = plan;
-		this.chunksToDownload = Sets.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+		this.chunksToDownload = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 		this.chunksToDownload.addAll(plan.getChunksToDownload().stream().map(Chunk::getBlobId).collect(Collectors.toList()));
 		this.chunksById = plan.getChunksToDownload().stream().collect(Collectors.toMap(Chunk::getBlobId, (c) -> c));
 

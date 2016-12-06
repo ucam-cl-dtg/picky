@@ -29,9 +29,6 @@ import java.io.InputStreamReader;
 import java.util.Optional;
 import java.util.zip.GZIPInputStream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import uk.ac.cam.cl.dtg.picky.parser.Attributes;
 import uk.ac.cam.cl.dtg.picky.parser.Entry;
 import uk.ac.cam.cl.dtg.picky.parser.IEntryParser;
@@ -41,7 +38,6 @@ public class ClusterParser implements IEntryParser {
 	private static final String EVENT_TYPE = "EVENT_TYPE";
 	private static final String KIND = "KIND";
 
-	private static final Logger LOG = LoggerFactory.getLogger(ClusterParser.class);
 	private GZIPInputStream stream;
 	private BufferedReader reader;
 
