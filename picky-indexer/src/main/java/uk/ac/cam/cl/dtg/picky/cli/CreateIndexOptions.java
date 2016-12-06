@@ -27,6 +27,7 @@ import org.apache.log4j.Level;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+import org.kohsuke.args4j.ParserProperties;
 
 import uk.ac.cam.cl.dtg.picky.dataset.DatasetConfig;
 import uk.ac.cam.cl.dtg.picky.parser.IEntryParser;
@@ -69,9 +70,7 @@ public class CreateIndexOptions {
 	}
 
 	protected void parse(String[] args) {
-		CmdLineParser parser = new CmdLineParser(this);
-
-		parser.setUsageWidth(130);
+		CmdLineParser parser = new CmdLineParser(this, ParserProperties.defaults().withUsageWidth(130));
 
 		try {
 			parser.parseArgument(args);
