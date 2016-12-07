@@ -118,6 +118,7 @@
 	<modules>
 		<module>picky-core</module>
 		<module>picky-client</module>
+		<module>picky-cli-client</module>
 		<module>picky-indexer</module>
 	</modules>
 
