@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -40,18 +41,14 @@ import uk.ac.cam.cl.dtg.picky.planner.actions.IAction;
 import uk.ac.cam.cl.dtg.picky.planner.actions.InstallFileAction;
 import uk.ac.cam.cl.dtg.picky.planner.actions.MakeDirAction;
 import uk.ac.cam.cl.dtg.picky.planner.actions.UpdateFileAction;
-import uk.ac.cam.cl.dtg.picky.util.IO;
 
 import com.google.common.collect.ListMultimap;
 import com.google.common.io.Files;
-
-import de.ecclesia.kipeto.repository.ReadingRepository;
 
 public class Planner {
 
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-	private ReadingRepository cache;
 	private File rootTarget;
 
 	private List<IAction> actions;
@@ -62,15 +59,17 @@ public class Planner {
 	private List<FileEntry> fileSelection;
 	private ListMultimap<String, String> entrySelection;
 
+	private Function<String, Boolean> inCache;
+
 	public Planner(
 			List<FileEntry> fileSelection,
 			ListMultimap<String, String> entrySelection,
-			ReadingRepository cache,
+			Function<String, Boolean> inCache,
 			File rootTarget) {
 
 		this.fileSelection = fileSelection;
 		this.entrySelection = entrySelection;
-		this.cache = cache;
+		this.inCache = inCache;
 		this.rootTarget = rootTarget;
 		this.actions = new LinkedList<>();
 		this.chunksToDownload = new HashSet<>();
@@ -130,7 +129,7 @@ public class Planner {
 			chunksToDownload.addAll(selectedBlocks
 					.stream()
 					.flatMap(block -> block.getChunks().stream())
-					.filter(chunk -> IO.wrapBoolean(() -> !cache.contains(chunk.getBlobId())))
+					.filter(chunk -> !inCache.apply(chunk.getBlobId()))
 					.collect(Collectors.toList()));
 		}
 
