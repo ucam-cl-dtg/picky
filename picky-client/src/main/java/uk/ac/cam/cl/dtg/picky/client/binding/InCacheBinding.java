@@ -4,7 +4,7 @@ package uk.ac.cam.cl.dtg.picky.client.binding;
  * #%L
  * Picky
  * %%
- * Copyright (C) 2015 Daniel Hintze <dh526@cl.cam.ac.uk>
+ * Copyright (C) 2017 Daniel Hintze <dh526@cl.cam.ac.uk>
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,14 @@ package uk.ac.cam.cl.dtg.picky.client.binding;
 import java.io.File;
 
 import javafx.beans.property.StringProperty;
+import uk.ac.cam.cl.dtg.picky.util.InRepositoryFunction;
 
 import com.google.common.base.Strings;
 
 import de.ecclesia.kipeto.repository.FileRepositoryStrategy;
 import de.ecclesia.kipeto.repository.ReadingRepository;
 
-public class CacheRepositoryBinding extends AsyncBinding<ReadingRepository> {
+public class InCacheBinding extends AsyncBinding<InRepositoryFunction> {
 
 	private StringProperty cacheDir;
 	private StringProperty tmpDir;
@@ -37,7 +38,7 @@ public class CacheRepositoryBinding extends AsyncBinding<ReadingRepository> {
 	private String cacheString;
 	private String tmpString;
 
-	public CacheRepositoryBinding(StringProperty cacheDir, StringProperty tmpDir) {
+	public InCacheBinding(StringProperty cacheDir, StringProperty tmpDir) {
 		super(cacheDir, tmpDir);
 
 		this.cacheDir = cacheDir;
@@ -45,14 +46,14 @@ public class CacheRepositoryBinding extends AsyncBinding<ReadingRepository> {
 	}
 
 	@Override
-	protected ReadingRepository computeValue() {
+	protected InRepositoryFunction computeValue() {
 		cacheString = cacheDir.get();
 		tmpString = tmpDir.get();
 
 		return super.computeValue();
 	}
 
-	protected ReadingRepository doCompute() {
+	protected InRepositoryFunction doCompute() {
 		if (Strings.isNullOrEmpty(cacheString) || Strings.isNullOrEmpty(tmpString)) return null;
 
 		File tmp = new File(tmpString);
@@ -60,6 +61,6 @@ public class CacheRepositoryBinding extends AsyncBinding<ReadingRepository> {
 
 		if (!tmp.isDirectory() || !cache.isDirectory()) return null;
 
-		return new ReadingRepository(new FileRepositoryStrategy(cache, tmp));
+		return new InRepositoryFunction(new ReadingRepository(new FileRepositoryStrategy(cache, tmp)));
 	}
 }

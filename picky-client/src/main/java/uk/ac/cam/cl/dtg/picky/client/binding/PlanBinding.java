@@ -35,33 +35,32 @@ import org.reactfx.EventStreams;
 import uk.ac.cam.cl.dtg.picky.dataset.FileEntry;
 import uk.ac.cam.cl.dtg.picky.planner.Plan;
 import uk.ac.cam.cl.dtg.picky.planner.Planner;
+import uk.ac.cam.cl.dtg.picky.util.InRepositoryFunction;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 
-import de.ecclesia.kipeto.repository.ReadingRepository;
-
 public class PlanBinding extends AsyncBinding<Plan> {
 
 	private FileSelectionBinding fileSelectionBinding;
 	private ObservableList<TreeItem<String>> entrySelectionProperty;
-	private ObjectBinding<ReadingRepository> cacheBinding;
+	private ObjectBinding<InRepositoryFunction> inCacheBinding;
 
 	private List<FileEntry> fileSelection;
 	private List<TreeItem<String>> entrySelection;
-	private ReadingRepository cache;
+	private InRepositoryFunction inCache;
 	private StringProperty targetDir;
 	private String target;
 
-	public PlanBinding(ObjectBinding<ReadingRepository> cacheBinding,
+	public PlanBinding(ObjectBinding<InRepositoryFunction> inCacheBinding,
 			StringProperty targetDir,
 			FileSelectionBinding fileSelectionBinding,
 			ObservableList<TreeItem<String>> entrySelection) {
 
-		super(cacheBinding, targetDir);
+		super(inCacheBinding, targetDir);
 
-		this.cacheBinding = cacheBinding;
+		this.inCacheBinding = inCacheBinding;
 		this.targetDir = targetDir;
 		this.fileSelectionBinding = fileSelectionBinding;
 		this.entrySelectionProperty = entrySelection;
@@ -77,7 +76,7 @@ public class PlanBinding extends AsyncBinding<Plan> {
 
 	@Override
 	protected Plan computeValue() {
-		cache = cacheBinding.get();
+		inCache = inCacheBinding.get();
 		target = targetDir.get();
 		fileSelection = fileSelectionBinding.get();
 		entrySelection = new ArrayList<>(entrySelectionProperty);
@@ -87,7 +86,7 @@ public class PlanBinding extends AsyncBinding<Plan> {
 
 	@Override
 	protected Plan doCompute() throws Exception {
-		if (cache == null || Strings.isNullOrEmpty(target) || fileSelection == null) return null;
+		if (inCache == null || Strings.isNullOrEmpty(target) || fileSelection == null) return null;
 
 		File targetFile = new File(target);
 		if (!targetFile.isDirectory()) return null;
@@ -98,7 +97,9 @@ public class PlanBinding extends AsyncBinding<Plan> {
 				.stream().filter(i -> i.getParent() != null)
 				.forEach(i -> entrySelectionMap.put(i.getParent().getValue(), i.getValue()));
 
-		Planner planner = new Planner(fileSelection, entrySelectionMap, cache, targetFile);
+		System.out.println(entrySelectionMap);
+
+		Planner planner = new Planner(fileSelection, entrySelectionMap, inCache, targetFile);
 		return planner.plan();
 	}
 

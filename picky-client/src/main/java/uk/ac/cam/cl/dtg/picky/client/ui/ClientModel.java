@@ -31,7 +31,6 @@ import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeItem;
 import uk.ac.cam.cl.dtg.picky.client.binding.AsyncBinding;
-import uk.ac.cam.cl.dtg.picky.client.binding.CacheRepositoryBinding;
 import uk.ac.cam.cl.dtg.picky.client.binding.DatasetBinding;
 import uk.ac.cam.cl.dtg.picky.client.binding.EntrySelectionLabel;
 import uk.ac.cam.cl.dtg.picky.client.binding.EntryTreeBinding;
@@ -42,6 +41,7 @@ import uk.ac.cam.cl.dtg.picky.client.binding.FileSelectionBinding;
 import uk.ac.cam.cl.dtg.picky.client.binding.FileSelectionLabel;
 import uk.ac.cam.cl.dtg.picky.client.binding.FileTreeBinding;
 import uk.ac.cam.cl.dtg.picky.client.binding.FilterErrorBinding;
+import uk.ac.cam.cl.dtg.picky.client.binding.InCacheBinding;
 import uk.ac.cam.cl.dtg.picky.client.binding.PlanBinding;
 import uk.ac.cam.cl.dtg.picky.client.binding.RepositoryCachedReadingStrategyBinding;
 import uk.ac.cam.cl.dtg.picky.dataset.Dataset;
@@ -53,13 +53,13 @@ public class ClientModel {
 	private PlanBinding planBinding;
 	private DatasetBinding datasetBinding;
 	private FileTreeBinding fileTreeBinding;
+	private InCacheBinding inCacheBinding;
 	private FileFilterBinding filterBinding;
 	private EntryTreeBinding entryTreeBinding;
 	private FileSelectionLabel fileSelectionLabel;
 	private FilterErrorBinding filterErrorBinding;
 	private EntrySelectionLabel entrySelectionLabel;
 	private FileSelectionBinding fileSelectionBinding;
-	private CacheRepositoryBinding cacheRepositoryBinding;
 	private FileContextSampleBinding fileContextSampleBinding;
 	private RepositoryCachedReadingStrategyBinding repositoryBinding;
 	private FileContextLabelBinding fileContextLabelBinding;
@@ -77,9 +77,9 @@ public class ClientModel {
 			ObservableList<TreeItem<String>> entrySelection) {
 
 		this.repositoryBinding = new RepositoryCachedReadingStrategyBinding(serverURL, cacheDir, tmpDir);
+		this.inCacheBinding = new InCacheBinding(cacheDir, tmpDir);
 		this.datasetBinding = new DatasetBinding(datasetURL, repositoryBinding);
 		this.fileTreeBinding = new FileTreeBinding(datasetBinding);
-		this.cacheRepositoryBinding = new CacheRepositoryBinding(cacheDir, tmpDir);
 		this.fileContextSampleBinding = new FileContextSampleBinding(datasetBinding);
 		this.filterErrorBinding = new FilterErrorBinding(fileFilter, fileContextSampleBinding);
 		this.filterBinding = new FileFilterBinding(fileFilter, filterErrorBinding);
@@ -103,7 +103,7 @@ public class ClientModel {
 
 		});
 
-		this.planBinding = new PlanBinding(cacheRepositoryBinding, targetDir, fileSelectionBinding, entrySelection);
+		this.planBinding = new PlanBinding(inCacheBinding, targetDir, fileSelectionBinding, entrySelection);
 	}
 
 	public AsyncBinding<Plan> getPlanBinding() {
