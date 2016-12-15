@@ -135,3 +135,6 @@ Any time settings or selections are changed, the client analyses the target dire
 
 ## 0.1 (2015-03-27)
 - First version published
+
+# Literature
+[1] D. Hintze and A. Rice: *[Picky: Efficient and Reproducible Sharing of Large Datasets Using Merkle-Trees](http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7774563&isnumber=7774549)*, 2016 IEEE 24th International Symposium on Modeling, Analysis and Simulation of Computer and Telecommunication Systems (MASCOTS), London, United Kingdom, 2016, pp. 30-38.
