@@ -25,21 +25,20 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-import javafx.beans.binding.ObjectBinding;
-import javafx.beans.property.StringProperty;
-import javafx.collections.ObservableList;
-import javafx.scene.control.TreeItem;
-
 import org.reactfx.EventStreams;
-
-import uk.ac.cam.cl.dtg.picky.dataset.FileEntry;
-import uk.ac.cam.cl.dtg.picky.planner.Plan;
-import uk.ac.cam.cl.dtg.picky.planner.Planner;
-import uk.ac.cam.cl.dtg.picky.util.InRepositoryFunction;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+
+import javafx.beans.binding.ObjectBinding;
+import javafx.beans.property.StringProperty;
+import javafx.collections.ObservableList;
+import javafx.scene.control.TreeItem;
+import uk.ac.cam.cl.dtg.picky.dataset.FileEntry;
+import uk.ac.cam.cl.dtg.picky.planner.Plan;
+import uk.ac.cam.cl.dtg.picky.planner.Planner;
+import uk.ac.cam.cl.dtg.picky.util.InRepositoryFunction;
 
 public class PlanBinding extends AsyncBinding<Plan> {
 
@@ -96,8 +95,6 @@ public class PlanBinding extends AsyncBinding<Plan> {
 		entrySelection
 				.stream().filter(i -> i.getParent() != null)
 				.forEach(i -> entrySelectionMap.put(i.getParent().getValue(), i.getValue()));
-
-		System.out.println(entrySelectionMap);
 
 		Planner planner = new Planner(fileSelection, entrySelectionMap, inCache, targetFile);
 		return planner.plan();
