@@ -32,6 +32,9 @@ import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ListMultimap;
+import com.google.common.io.Files;
+
 import uk.ac.cam.cl.dtg.picky.dataset.Block;
 import uk.ac.cam.cl.dtg.picky.dataset.Chunk;
 import uk.ac.cam.cl.dtg.picky.dataset.FileEntry;
@@ -41,9 +44,6 @@ import uk.ac.cam.cl.dtg.picky.planner.actions.IAction;
 import uk.ac.cam.cl.dtg.picky.planner.actions.InstallFileAction;
 import uk.ac.cam.cl.dtg.picky.planner.actions.MakeDirAction;
 import uk.ac.cam.cl.dtg.picky.planner.actions.UpdateFileAction;
-
-import com.google.common.collect.ListMultimap;
-import com.google.common.io.Files;
 
 public class Planner {
 
@@ -60,6 +60,8 @@ public class Planner {
 	private ListMultimap<String, String> entrySelection;
 
 	private Function<String, Boolean> inCache;
+
+	private long subsetSize;
 
 	public Planner(
 			List<FileEntry> fileSelection,
@@ -92,10 +94,12 @@ public class Planner {
 		preExistingFilesToRemove.stream().filter(File::isFile).forEach(file -> actions.add(new DeleteFileAction(file)));
 		preExistingFilesToRemove.stream().filter(File::isDirectory).forEach(dir -> actions.add(new DeleteDirAction(dir)));
 
-		return new Plan(actions, chunksToDownload);
+		return new Plan(actions, chunksToDownload, subsetSize);
 	}
 
 	private void installFile(FileEntry fileEntry) {
+		log.info("planing " + fileEntry.getAttributes());
+
 		File target = new File(rootTarget, fileEntry.getAttributes().get(FileEntry.PATH_KEY).toString());
 
 		List<Block> selectedBlocks = fileEntry.getBlocks()
@@ -110,6 +114,8 @@ public class Planner {
 
 		long tLM = target.lastModified();
 		long tFL = target.length();
+
+		subsetSize += rFL;
 
 		// file does not exist, is directory or is changed
 		// FIXME: Will fail with different but equally sized blocks

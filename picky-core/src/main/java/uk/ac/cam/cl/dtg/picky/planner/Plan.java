@@ -42,8 +42,11 @@ public class Plan {
 	private final List<DeleteFileAction> deleteFileActions;
 	private final List<InstallFileAction> installFileActions;
 
-	public Plan(List<IAction> actions, Set<Chunk> chunksToDownload) {
+	private long subsetSize;
+
+	public Plan(List<IAction> actions, Set<Chunk> chunksToDownload, long subsetSize) {
 		this.chunksToDownload = chunksToDownload;
+		this.subsetSize = subsetSize;
 
 		this.makeDirActions = filterActions(actions, MakeDirAction.class);
 		this.deleteDirActions = filterActions(actions, DeleteDirAction.class);
@@ -74,6 +77,10 @@ public class Plan {
 
 	public Set<Chunk> getChunksToDownload() {
 		return chunksToDownload;
+	}
+
+	public long getSubsetSize() {
+		return subsetSize;
 	}
 
 	@SuppressWarnings("unchecked")

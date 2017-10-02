@@ -38,17 +38,16 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.cam.cl.dtg.picky.dataset.Block;
-import uk.ac.cam.cl.dtg.picky.dataset.Chunk;
-import uk.ac.cam.cl.dtg.picky.engine.ProgressEvent.Action;
-import uk.ac.cam.cl.dtg.picky.planner.Plan;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
 import de.ecclesia.kipeto.repository.Blob;
 import de.ecclesia.kipeto.repository.CachedReadingStrategy;
 import de.ecclesia.kipeto.repository.ReadingRepository;
+import uk.ac.cam.cl.dtg.picky.dataset.Block;
+import uk.ac.cam.cl.dtg.picky.dataset.Chunk;
+import uk.ac.cam.cl.dtg.picky.engine.ProgressEvent.Action;
+import uk.ac.cam.cl.dtg.picky.planner.Plan;
 
 public class Engine {
 
@@ -97,7 +96,7 @@ public class Engine {
 		int availableProcessors = Runtime.getRuntime().availableProcessors();
 
 		this.sequentialExecutor = new PausableExecutor(1, new WorkerThreadFactory("engine_sequential_worker"));
-		this.parallelExecutor = new PausableExecutor(availableProcessors * 2, new WorkerThreadFactory("engine_parallel_worker"));
+		this.parallelExecutor = new PausableExecutor(availableProcessors * 4, new WorkerThreadFactory("engine_parallel_worker"));
 
 		this.totalActionNumber = new ImmutableMap.Builder<Action, Integer>()
 				.put(Action.DELETE_DIR, plan.getDeleteDirActions().size())

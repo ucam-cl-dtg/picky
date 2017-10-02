@@ -34,13 +34,6 @@ import java.util.TimerTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.cam.cl.dtg.picky.dataset.Dataset;
-import uk.ac.cam.cl.dtg.picky.dataset.FileEntry;
-import uk.ac.cam.cl.dtg.picky.engine.Engine;
-import uk.ac.cam.cl.dtg.picky.planner.Plan;
-import uk.ac.cam.cl.dtg.picky.planner.Planner;
-import uk.ac.cam.cl.dtg.picky.util.InRepositoryFunction;
-
 import com.google.common.base.Strings;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -51,6 +44,12 @@ import de.ecclesia.kipeto.repository.FileRepositoryStrategy;
 import de.ecclesia.kipeto.repository.ReadingRepository;
 import de.ecclesia.kipeto.repository.ReadingRepositoryStrategy;
 import de.ecclesia.kipeto.repository.StrategySelector;
+import uk.ac.cam.cl.dtg.picky.dataset.Dataset;
+import uk.ac.cam.cl.dtg.picky.dataset.FileEntry;
+import uk.ac.cam.cl.dtg.picky.engine.Engine;
+import uk.ac.cam.cl.dtg.picky.planner.Plan;
+import uk.ac.cam.cl.dtg.picky.planner.Planner;
+import uk.ac.cam.cl.dtg.picky.util.InRepositoryFunction;
 
 public class CLIApp {
 
@@ -114,7 +113,7 @@ public class CLIApp {
 			entrySelectionMap.put("" + s.subSequence(0, s.indexOf(".")), "" + s.subSequence(s.indexOf(".") + 1, s.indexOf("=")));
 		});
 
-		System.out.println(entrySelectionMap);
+		System.out.println("Entry selection: " + entrySelectionMap);
 
 		// FIXME:
 		List<FileEntry> fileSelection = new ArrayList<>();
@@ -164,6 +163,7 @@ public class CLIApp {
 	}
 
 	private void printDetails(Plan plan) {
+
 		System.out.println("===================================");
 		System.out.println("Dirs to delete:\t\t" + plan.getDeleteDirActions().size());
 		System.out.println("Files to delete:\t" + plan.getDeleteFileActions().size());
@@ -171,6 +171,7 @@ public class CLIApp {
 		System.out.println("Dirs to create:\t\t" + plan.getMakeDirActions().size());
 		System.out.println("Files to install:\t" + plan.getInstallFileActions().size());
 		System.out.println("Chunks to download:\t" + plan.getChunksToDownload().size());
+		System.out.println("Subset size: \t " + FileSizeFormatter.formateBytes(plan.getSubsetSize(), 1));
 		System.out.println("===================================");
 	}
 
@@ -216,7 +217,8 @@ public class CLIApp {
 			long diff = bytesReadLastTime <= currentRead ? currentRead - bytesReadLastTime : currentRead;
 			bytesReadLastTime = currentRead;
 
-			System.out.println("Download: " + FileSizeFormatter.formateBytes(currentRead, 1) + " (" + FileSizeFormatter.formateBytes(diff, 1) + "/s)");
+			System.out
+					.println("Download: " + FileSizeFormatter.formateBytes(currentRead, 1) + " (" + FileSizeFormatter.formateBytes(diff, 1) + "/s)");
 		}
 	}
 
