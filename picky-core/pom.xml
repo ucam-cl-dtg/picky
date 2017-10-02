@@ -17,7 +17,7 @@
 		<dependency>
 			<groupId>de.ecclesia.kipeto</groupId>
 			<artifactId>kipeto-core</artifactId>
-			<version>1.0.2-SNAPSHOT</version>
+			<version>1.0.2</version>
 		</dependency>
 
 		<dependency>
@@ -29,13 +29,13 @@
 		<dependency>
 			<groupId>org.pcap4j</groupId>
 			<artifactId>pcap4j-core</artifactId>
-			<version>1.7.0</version>
+			<version>1.7.2</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>org.pcap4j</groupId>
 			<artifactId>pcap4j-packetfactory-static</artifactId>
-			<version>1.7.0</version>
+			<version>1.7.2</version>
 		</dependency>
 
 	</dependencies>
