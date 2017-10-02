@@ -52,7 +52,6 @@
 						<phase>package</phase>
 						<goals>
 							<goal>shade</goal>
-							<goal>single</goal>
 						</goals>
 					</execution>
 				</executions>
