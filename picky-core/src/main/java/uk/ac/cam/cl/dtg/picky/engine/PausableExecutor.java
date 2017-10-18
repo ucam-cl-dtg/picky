@@ -41,7 +41,7 @@ public class PausableExecutor extends ScheduledThreadPoolExecutor {
 
 	private boolean isPaused;
 
-	List<WeakReference<Future<?>>> pendingTasks = Collections.synchronizedList(new ArrayList<WeakReference<Future<?>>>());
+	private List<WeakReference<Future<?>>> pendingTasks = Collections.synchronizedList(new ArrayList<WeakReference<Future<?>>>());
 
 	private final Monitor monitor = new Monitor();
 	private final Monitor.Guard paused = new Monitor.Guard(monitor) {

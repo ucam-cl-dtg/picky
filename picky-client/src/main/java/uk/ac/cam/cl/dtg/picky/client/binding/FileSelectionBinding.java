@@ -25,8 +25,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javafx.beans.binding.ObjectBinding;
-
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -35,11 +33,12 @@ import javax.script.ScriptException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Strings;
+
+import javafx.beans.binding.ObjectBinding;
 import uk.ac.cam.cl.dtg.picky.dataset.BlockFactory;
 import uk.ac.cam.cl.dtg.picky.dataset.Dataset;
 import uk.ac.cam.cl.dtg.picky.dataset.FileEntry;
-
-import com.google.common.base.Strings;
 
 public class FileSelectionBinding extends AsyncBinding<List<FileEntry>> {
 
@@ -90,13 +89,15 @@ public class FileSelectionBinding extends AsyncBinding<List<FileEntry>> {
 			// Remove attributes from engine that whould not be overwritten
 			engineAttributes.forEach(a -> engine.getContext().removeAttribute(a, ScriptContext.ENGINE_SCOPE));
 
-			// remember attributes in context for next iteration to avoid having stale attributes
+			// remember attributes in context for next iteration to avoid having
+			// stale attributes
 			engineAttributes.addAll(entry.getAttributes().keySet());
 
 			// set file attributes as attributes in js engine context
 			entry.getAttributes().entrySet().forEach(es -> engine.put(es.getKey(), es.getValue()));
 
 			Object result = engine.eval(filter);
+
 			if (result instanceof Boolean) {
 				return (boolean) result;
 			} else {
@@ -104,11 +105,10 @@ public class FileSelectionBinding extends AsyncBinding<List<FileEntry>> {
 			}
 
 		} catch (ScriptException e) {
-			LOG.error(e.getMessage(), e);
+			LOG.error(e.getMessage());
 		}
 
 		return false;
-
 	}
 
 }

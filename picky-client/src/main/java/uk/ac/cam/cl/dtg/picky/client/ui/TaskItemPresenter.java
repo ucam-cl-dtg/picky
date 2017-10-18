@@ -22,15 +22,19 @@ package uk.ac.cam.cl.dtg.picky.client.ui;
 
 import java.net.URL;
 import java.text.NumberFormat;
+import java.time.Duration;
 import java.util.ResourceBundle;
 
+import org.reactfx.EventSource;
+import org.reactfx.EventStream;
+
+import de.ecclesia.kipeto.common.util.FileSizeFormatter;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ProgressIndicator;
-import de.ecclesia.kipeto.common.util.FileSizeFormatter;
 
 public class TaskItemPresenter implements Initializable {
 
@@ -44,6 +48,22 @@ public class TaskItemPresenter implements Initializable {
 	private long totalSize;
 
 	private NumberFormat format = NumberFormat.getInstance();
+
+	private EventSource<Event> events = new EventSource<>();
+	private EventStream<Event> eventStream = events.reduceSuccessions((a, b) -> b, Duration.ofMillis(500));
+
+	private class Event {
+
+		final String msg;
+		final int tasksDone;
+		final long bytesDone;
+
+		public Event(String msg, int tasksDone, long bytesDone) {
+			this.msg = msg;
+			this.tasksDone = tasksDone;
+			this.bytesDone = bytesDone;
+		}
+	}
 
 	public void setTitle(String title) {
 		this.title = title;
@@ -59,29 +79,39 @@ public class TaskItemPresenter implements Initializable {
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
+		eventStream.subscribe(event -> {
+			Platform.runLater(() -> {
+				double currentProgress = total == 0 ? 0 : event.tasksDone / (total * 1.0);
+
+				String tasksProgress = format.format(event.tasksDone) + " of " + format.format(total);
+				String bytesProgress = "";
+
+				if (totalSize > 0 && event.bytesDone > 0) {
+					bytesProgress = " (" + FileSizeFormatter.formateBytes(event.bytesDone, 2) + " of " + FileSizeFormatter.formateBytes(totalSize, 2)
+							+ ")";
+				} else if (totalSize > 0) {
+					bytesProgress = " (" + FileSizeFormatter.formateBytes(totalSize, 2) + ")";
+				}
+
+				String taskText = title + ": " + tasksProgress + bytesProgress;
+
+				task.setText(taskText);
+				progress.setProgress(currentProgress);
+				indicator.setProgress(currentProgress);
+
+				if (event.msg != null || event.tasksDone == total) this.message.setText(event.msg);
+			});
+		});
+
 		update(null, 0, 0L);
 	}
 
 	public void update(String msg, int tasksDone, long bytesDone) {
-		Platform.runLater(() -> {
-			double currentProgress = total == 0 ? 0 : tasksDone / (total * 1.0);
-
-			String tasksProgress = format.format(tasksDone) + " of " + format.format(total);
-			String bytesProgress = "";
-
-			if (totalSize > 0 && bytesDone > 0) {
-				bytesProgress = " (" + FileSizeFormatter.formateBytes(bytesDone, 2) + " of " + FileSizeFormatter.formateBytes(totalSize, 2) + ")";
-			} else if (totalSize > 0) {
-				bytesProgress = " (" + FileSizeFormatter.formateBytes(totalSize, 2) + ")";
-			}
-
-			String taskText = title + ": " + tasksProgress + bytesProgress;
-
-			task.setText(taskText);
-			progress.setProgress(currentProgress);
-			indicator.setProgress(currentProgress);
-
-			if (msg != null || tasksDone == total) this.message.setText(msg);
-		});
+		try {
+			events.push(new Event(msg, tasksDone, bytesDone));
+		} catch (Exception e) {
+			// reactfx apparently does force an IllegalAccumulation for some
+			// reasons sometimes?
+		}
 	}
 }
