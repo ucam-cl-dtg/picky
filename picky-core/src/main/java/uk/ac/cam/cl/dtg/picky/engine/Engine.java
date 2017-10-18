@@ -131,6 +131,11 @@ public class Engine {
 			parallelExecutor.resume();
 		});
 
+		chunksToDownload.stream()
+				.forEach(blobId -> parallelExecutor.submit(wrapAction(Action.DOWNLOAD_CHUNK, "Downloading" + blobId, () -> {
+					downloadBlob(blobId);
+				})));
+
 		plan.getInstallFileActions().stream().forEach(
 				a -> parallelExecutor.submit(wrapAction(Action.INSTALL_FILE, "Installing file " + a.getFile(), () -> {
 					installFile(a.getFile(), a.getLastModified(), a.getBlocks(), a.getFileHeader());
@@ -230,23 +235,33 @@ public class Engine {
 			Blob blob;
 
 			if (chunksToDownload.contains(id)) {
-				AtomicLong bytesDownloaded = byteProgress.get(Action.DOWNLOAD_CHUNK);
-
-				Integer total = totalActionNumber.get(Action.DOWNLOAD_CHUNK);
-
-				fireOnActionStart(new ProgressEvent(Action.DOWNLOAD_CHUNK, "Downloading " + id, total - chunksToDownload.size(),
-						bytesDownloaded.get()));
-				blob = repository.retrieve(id, Blob.class);
-				chunksToDownload.remove(id);
-
-				bytesDownloaded.addAndGet(chunksById.get(id).getLengthCompressed());
-
-				fireOnActionFinished(new ProgressEvent(Action.DOWNLOAD_CHUNK, null, total - chunksToDownload.size(), bytesDownloaded.get()));
+				blob = downloadBlob(id);
 			} else {
 				blob = repository.retrieve(id, Blob.class);
 			}
 
 			return blob;
+		}
+	}
+
+	private Blob downloadBlob(String id) {
+		try {
+			AtomicLong bytesDownloaded = byteProgress.get(Action.DOWNLOAD_CHUNK);
+
+			Integer total = totalActionNumber.get(Action.DOWNLOAD_CHUNK);
+
+			fireOnActionStart(new ProgressEvent(Action.DOWNLOAD_CHUNK, "Downloading " + id, total - chunksToDownload.size(),
+					bytesDownloaded.get()));
+			Blob blob = repository.retrieve(id, Blob.class);
+			chunksToDownload.remove(id);
+
+			bytesDownloaded.addAndGet(chunksById.get(id).getLengthCompressed());
+
+			fireOnActionFinished(new ProgressEvent(Action.DOWNLOAD_CHUNK, null, total - chunksToDownload.size(), bytesDownloaded.get()));
+
+			return blob;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
