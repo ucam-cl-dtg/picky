@@ -1,0 +1,14 @@
+apply plugin: 'java-library'
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'uk.ac.cam.cl.dtg.picky.cli.client.CLIApp'
+    }
+}
+
+dependencies {
+	compile project(':picky-core')
+	compile 'commons-cli:commons-cli:1.4'
+	compile 'org.apache.httpcomponents:httpclient:4.5.3'
+	compile 'org.apache.httpcomponents:httpmime:4.5.3'
+}
