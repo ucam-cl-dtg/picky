@@ -1,0 +1,4 @@
+include 'picky-core'
+include 'picky-cli-client'
+include 'picky-indexer'
+include 'picky-client'

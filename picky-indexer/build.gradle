@@ -1,0 +1,10 @@
+jar {
+    manifest {
+        attributes 'Main-Class': 'uk.ac.cam.cl.dtg.picky.cli.CreateIndexApp'
+    }
+}
+
+dependencies {
+	compile project(':picky-core')
+	compile 'commons-cli:commons-cli:1.4'
+}
