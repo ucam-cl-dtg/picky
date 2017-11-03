@@ -22,16 +22,19 @@ Picky facilitates efficient, reproducible and selective sharing of large scienti
 # How to build
 
 ## Requirements
-* Java 1.8+
-* Maven 3.0+
+* Java 9
 
 ## Build Instructions
 1. checkout sources
-2. run `mvn install` in project root
+2. run `./gradlew shadowJar` in project root
 
 The build is going to produce two artefacts of interest:
-- picky-indexer/target/picky-indexer-0.2-SNAPSHOT-jar-with-dependencies.jar
-- picky-client/target/picky-client-0.2-SNAPSHOT.jar
+- picky-indexer/build/libs/picky-indexer-0.3-jar
+- picky-client/build/libs/picky-client-0.3.jar
+
+Run them using a Java 9 SDK like `java -jar picky-client/build/libs/picky-client-0.3.jar`
+
+Hint: Picky is quite memory heavy for large datasets. Make sure to assign enough memory to Java in case you experience hangs, crashes or OutOfMemoryExceptions. Run Java with the parameter `-Xmx15G` to start it with a maxium of 15GB heap memory - adjust the size to your needs.
 
 # How to use
 
