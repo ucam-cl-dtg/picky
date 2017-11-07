@@ -135,7 +135,7 @@ Any time settings or selections are changed, the client analyses the target dire
 - A number of small bugfixes and stability improvements
 - Dependency updates
 - Upgrade to Java 9
-- Move build system vom Maven to Gradle
+- Move build system from Maven to Gradle
 
 ## 0.2 (2015-04-21)
 - Upload usage statistics
