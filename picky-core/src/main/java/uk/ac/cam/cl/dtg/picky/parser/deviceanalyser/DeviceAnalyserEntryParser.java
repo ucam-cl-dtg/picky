@@ -36,15 +36,17 @@ import java.util.zip.GZIPInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Iterables;
+
 import uk.ac.cam.cl.dtg.picky.parser.Attributes;
 import uk.ac.cam.cl.dtg.picky.parser.Entry;
 import uk.ac.cam.cl.dtg.picky.parser.IEntryParser;
 
-import com.google.common.collect.Iterables;
-
 public class DeviceAnalyserEntryParser implements IEntryParser {
 
 	private static final Logger LOG = LoggerFactory.getLogger(DeviceAnalyserEntryParser.class);
+
+	private static final int BUFFER_SIZE = 1 * 1024 * 1024;
 
 	private static final String ATTRIBUTE_KEY = "key";
 	private static final String ATTRIBUTE_DAYS = "days";
@@ -73,12 +75,12 @@ public class DeviceAnalyserEntryParser implements IEntryParser {
 	public void open(File file) throws IOException {
 		FileInputStream fileInputStream = new FileInputStream(file);
 
-		BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
+		BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream, BUFFER_SIZE);
 
 		if (file.getName().toLowerCase().endsWith(".gz")) {
-			reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(bufferedInputStream)));
+			reader = new BufferedReader(new InputStreamReader(new GZIPInputStream(bufferedInputStream)), BUFFER_SIZE);
 		} else {
-			reader = new BufferedReader(new InputStreamReader(bufferedInputStream));
+			reader = new BufferedReader(new InputStreamReader(bufferedInputStream), BUFFER_SIZE);
 		}
 
 		deviceInfoParser = new DeviceInfoParser();

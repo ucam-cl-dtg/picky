@@ -1,5 +1,7 @@
 package uk.ac.cam.cl.dtg.picky.dataset;
 
+import java.io.BufferedOutputStream;
+
 /*
  * #%L
  * Picky
@@ -28,11 +30,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class SwappingFileOutputStream extends OutputStream {
 
+	private static final int BUFFER_SIZE = 1 * 1024 * 1024;;
+
 	private static final int MAX_OPEN_FILE_STREAMS = 800;
 
 	private File file;
 
-	private FileOutputStream fileOutputStream;
+	private BufferedOutputStream bufferedfileOutputStream;
 
 	private static final AtomicInteger openFileOutputStreams = new AtomicInteger();
 
@@ -51,12 +55,12 @@ public class SwappingFileOutputStream extends OutputStream {
 
 	@Override
 	public void write(int b) throws IOException {
-		if (fileOutputStream == null) {
-			fileOutputStream = new FileOutputStream(file, true);
+		if (bufferedfileOutputStream == null) {
+			bufferedfileOutputStream = new BufferedOutputStream(new FileOutputStream(file, true), BUFFER_SIZE);
 			openFileOutputStreams.incrementAndGet();
 		}
 
-		fileOutputStream.write(b);
+		bufferedfileOutputStream.write(b);
 	}
 
 	@Override
@@ -67,9 +71,9 @@ public class SwappingFileOutputStream extends OutputStream {
 	}
 
 	private void closeFileOutputStream() throws IOException {
-		if (fileOutputStream != null) {
-			fileOutputStream.close();
-			fileOutputStream = null;
+		if (bufferedfileOutputStream != null) {
+			bufferedfileOutputStream.close();
+			bufferedfileOutputStream = null;
 			openFileOutputStreams.decrementAndGet();
 		}
 	}
