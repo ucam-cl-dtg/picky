@@ -57,8 +57,8 @@ public class Engine {
 
 	private Plan plan;
 
-	private PausableExecutor sequentialExecutor;
-	private PausableExecutor parallelExecutor;
+	private PausableExecutor diskExecutor;
+	private PausableExecutor downloadExecutor;
 
 	private CachedReadingStrategy readingStrategy;
 	private ReadingRepository repository;
@@ -93,10 +93,8 @@ public class Engine {
 		this.chunksToDownload.addAll(plan.getChunksToDownload().stream().map(Chunk::getBlobId).collect(Collectors.toList()));
 		this.chunksById = plan.getChunksToDownload().stream().collect(Collectors.toMap(Chunk::getBlobId, (c) -> c));
 
-		int availableProcessors = Runtime.getRuntime().availableProcessors();
-
-		this.sequentialExecutor = new PausableExecutor(1, new WorkerThreadFactory("engine_sequential_worker"));
-		this.parallelExecutor = new PausableExecutor(availableProcessors * 4, new WorkerThreadFactory("engine_parallel_worker"));
+		this.diskExecutor = new PausableExecutor(1, new WorkerThreadFactory("engine_disk_worker"));
+		this.downloadExecutor = new PausableExecutor(10, new WorkerThreadFactory("engine_download_worker"));
 
 		this.totalActionNumber = new ImmutableMap.Builder<Action, Integer>()
 				.put(Action.DELETE_DIR, plan.getDeleteDirActions().size())
@@ -109,61 +107,61 @@ public class Engine {
 	}
 
 	public void execute() {
-		parallelExecutor.pause();
+		downloadExecutor.pause();
 
 		plan.getDeleteFileActions().stream().forEach(
-				a -> sequentialExecutor.submit(wrapAction(Action.DELETE_FILE, "Deleting file " + a.getFile(), () -> {
+				a -> diskExecutor.submit(wrapAction(Action.DELETE_FILE, "Deleting file " + a.getFile(), () -> {
 					Preconditions.checkArgument(!a.getFile().exists() || a.getFile().delete(), "Could not delete " + a.getFile());
 				})));
 
 		plan.getDeleteDirActions().stream().forEach(
-				a -> sequentialExecutor.submit(wrapAction(Action.DELETE_DIR, "Deleting dir " + a.getDir(), () -> {
+				a -> diskExecutor.submit(wrapAction(Action.DELETE_DIR, "Deleting dir " + a.getDir(), () -> {
 					Preconditions.checkArgument(!a.getDir().exists() || a.getDir().delete(), "Could not delete " + a.getDir());
 				})));
 
 		plan.getMakeDirActions().stream().forEach(
-				a -> sequentialExecutor.submit(wrapAction(Action.MAKE_DIR, "Creating dir " + a.getDir(), () -> {
+				a -> diskExecutor.submit(wrapAction(Action.MAKE_DIR, "Creating dir " + a.getDir(), () -> {
 					Preconditions.checkArgument(a.getDir().mkdir(), "Could not create " + a.getDir());
 				})));
 
 		// start parallel execution
-		sequentialExecutor.submit(() -> {
-			parallelExecutor.resume();
+		diskExecutor.submit(() -> {
+			downloadExecutor.resume();
 		});
 
 		chunksToDownload.stream()
-				.forEach(blobId -> parallelExecutor.submit(wrapAction(Action.DOWNLOAD_CHUNK, "Downloading" + blobId, () -> {
+				.forEach(blobId -> downloadExecutor.submit(wrapAction(Action.DOWNLOAD_CHUNK, "Downloading" + blobId, () -> {
 					downloadBlob(blobId);
 				})));
 
 		plan.getInstallFileActions().stream().forEach(
-				a -> parallelExecutor.submit(wrapAction(Action.INSTALL_FILE, "Installing file " + a.getFile(), () -> {
+				a -> diskExecutor.submit(wrapAction(Action.INSTALL_FILE, "Installing file " + a.getFile(), () -> {
 					installFile(a.getFile(), a.getLastModified(), a.getBlocks(), a.getFileHeader());
 				})));
 
 		plan.getUpdateFileActions().stream().forEach(
-				a -> parallelExecutor.submit(wrapAction(Action.UPDATE_FILE, "Updating file " + a.getFile(), () -> {
+				a -> diskExecutor.submit(wrapAction(Action.UPDATE_FILE, "Updating file " + a.getFile(), () -> {
 					Preconditions.checkArgument(a.getFile().delete(), "Could not delete " + a.getFile());
 					installFile(a.getFile(), a.getLastModified(), a.getBlocks(), a.getFileHeader());
 				})));
 
-		sequentialExecutor.shutdown();
-		parallelExecutor.shutdown();
+		diskExecutor.shutdown();
+		downloadExecutor.shutdown();
 	}
 
 	public void resume() {
-		parallelExecutor.resume();
-		parallelExecutor.resume();
+		downloadExecutor.resume();
+		downloadExecutor.resume();
 	}
 
 	public void pause() {
-		parallelExecutor.pause();
-		parallelExecutor.pause();
+		downloadExecutor.pause();
+		downloadExecutor.pause();
 	}
 
 	public void stop() {
-		parallelExecutor.cancelRemainingTasks();
-		sequentialExecutor.cancelRemainingTasks();
+		downloadExecutor.cancelRemainingTasks();
+		diskExecutor.cancelRemainingTasks();
 	}
 
 	public void addListener(ProgressListener listener) {

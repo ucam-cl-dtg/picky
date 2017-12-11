@@ -38,10 +38,14 @@ import javafx.scene.control.ProgressIndicator;
 
 public class TaskItemPresenter implements Initializable {
 
-	@FXML Label task;
-	@FXML ProgressBar progress;
-	@FXML Label message;
-	@FXML ProgressIndicator indicator;
+	@FXML
+	Label task;
+	@FXML
+	ProgressBar progress;
+	@FXML
+	Label message;
+	@FXML
+	ProgressIndicator indicator;
 
 	private String title;
 	private int total;
@@ -80,21 +84,21 @@ public class TaskItemPresenter implements Initializable {
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		eventStream.subscribe(event -> {
+			double currentProgress = total == 0 ? 0 : event.tasksDone / (total * 1.0);
+
+			String tasksProgress = format.format(event.tasksDone) + " of " + format.format(total);
+			String bytesProgress = "";
+
+			if (totalSize > 0 && event.bytesDone > 0) {
+				bytesProgress = " (" + FileSizeFormatter.formateBytes(event.bytesDone, 2) + " of " + FileSizeFormatter.formateBytes(totalSize, 2)
+						+ ")";
+			} else if (totalSize > 0) {
+				bytesProgress = " (" + FileSizeFormatter.formateBytes(totalSize, 2) + ")";
+			}
+
+			String taskText = title + ": " + tasksProgress + bytesProgress;
+
 			Platform.runLater(() -> {
-				double currentProgress = total == 0 ? 0 : event.tasksDone / (total * 1.0);
-
-				String tasksProgress = format.format(event.tasksDone) + " of " + format.format(total);
-				String bytesProgress = "";
-
-				if (totalSize > 0 && event.bytesDone > 0) {
-					bytesProgress = " (" + FileSizeFormatter.formateBytes(event.bytesDone, 2) + " of " + FileSizeFormatter.formateBytes(totalSize, 2)
-							+ ")";
-				} else if (totalSize > 0) {
-					bytesProgress = " (" + FileSizeFormatter.formateBytes(totalSize, 2) + ")";
-				}
-
-				String taskText = title + ": " + tasksProgress + bytesProgress;
-
 				task.setText(taskText);
 				progress.setProgress(currentProgress);
 				indicator.setProgress(currentProgress);
@@ -107,11 +111,8 @@ public class TaskItemPresenter implements Initializable {
 	}
 
 	public void update(String msg, int tasksDone, long bytesDone) {
-		try {
+		Platform.runLater(() -> {
 			events.push(new Event(msg, tasksDone, bytesDone));
-		} catch (Exception e) {
-			// reactfx apparently does force an IllegalAccumulation for some
-			// reasons sometimes?
-		}
+		});
 	}
 }
