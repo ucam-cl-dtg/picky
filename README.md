@@ -131,6 +131,10 @@ Any time settings or selections are changed, the client analyses the target dire
 
 # Changelog
 
+## 0.4 (2017-12-11)
+- Fix some Indexer IO inefficiencies  
+- Fix UI update bug
+
 ## 0.3 (2017-11-03)
 - A number of small bugfixes and stability improvements
 - Dependency updates
