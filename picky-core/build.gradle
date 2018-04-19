@@ -7,3 +7,11 @@ dependencies {
 	compile 'org.pcap4j:pcap4j-core:1.7.2'
 	compile 'org.pcap4j:pcap4j-packetfactory-static:1.7.2'
 }
+
+import org.apache.tools.ant.filters.*
+
+processResources {
+    filter ReplaceTokens, tokens: [
+        "project.version": project.property("version")
+    ]
+}
