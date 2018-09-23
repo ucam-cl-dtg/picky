@@ -29,10 +29,10 @@ Picky facilitates efficient, reproducible and selective sharing of large scienti
 2. run `./gradlew shadowJar` in project root
 
 The build is going to produce two artefacts of interest:
-- picky-indexer/build/libs/picky-indexer-0.3-jar
-- picky-client/build/libs/picky-client-0.3.jar
+- picky-indexer/build/libs/picky-indexer-0.4-jar
+- picky-client/build/libs/picky-client-0.4.jar
 
-Run them using a Java 9 SDK like `java -jar picky-client/build/libs/picky-client-0.3.jar`
+Run them using a Java 9 SDK like `java -jar picky-client/build/libs/picky-client-0.4.jar`
 
 Hint: Picky is quite memory heavy for large datasets. Make sure to assign enough memory to Java in case you experience hangs, crashes or OutOfMemoryExceptions. Run Java with the parameter `-Xmx15G` to start it with a maxium of 15GB heap memory - adjust the size to your needs.
 
